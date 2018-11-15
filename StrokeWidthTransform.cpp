@@ -7,8 +7,8 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include <math.h>
-#include <time.h>
+#include <cmath>
+#include <ctime>
 #include <utility>
 #include <algorithm>
 #include <vector>
@@ -16,22 +16,35 @@
 #define PI 3.14159265
 
 using namespace cv;
+using namespace std;
 
-StrokeWidthTransform::StrokeWidthTransform() {
-    string filename = "../Pict0021.jpg";
-    image = imread(filename);
-    gray = Mat(image.size[0], image.size[1], CV_8UC1);
-    blurred = Mat(image.size[0], image.size[1], CV_32FC1);
-    gradientY = Mat(image.size[0], image.size[1], CV_32FC1);
-    gradientX = Mat(image.size[0], image.size[1], CV_32FC1);
-    SWTMatrix = Mat(image.size[0], image.size[1], CV_32FC1, Scalar(-1.));
-    SWTMatrixNorm = Mat(image.size[0], image.size[1], CV_32FC1);
-    result = Mat(image.size[0], image.size[1], CV_8UC1);
+StrokeWidthTransform::StrokeWidthTransform(string filename, string format) : filename(filename) {
+    image = imread("../images/original/" + filename + format);
+    int height = image.size[0];
+    int width = image.size[1];
+    gray = Mat(height, width, CV_8UC1);
+    blurred = Mat(height, width, CV_32FC1);
+    gradientY = Mat(height, width, CV_32FC1);
+    gradientX = Mat(height, width, CV_32FC1);
+    SWTMatrix = Mat(height, width, CV_32FC1, Scalar(-1.));
+    SWTMatrix_norm = Mat(height, width, CV_32FC1);
+    result = Mat(height, width, CV_8UC1);
+}
+
+void StrokeWidthTransform::execute() {
+    edgeDetection();
+    gradient();
+    // TODO two-side pass for true and false
+    buildSWT(true); // true if white text on dark background, else false
+    medianFilter();
+    normalizeImage(SWTMatrix, SWTMatrix_norm);
+    convertScaleAbs(SWTMatrix_norm, result, 255, 0);
+    //showAndSaveSWT();
 }
 
 void StrokeWidthTransform::edgeDetection() {
     cvtColor(image, gray, COLOR_BGR2GRAY);
-    Canny(gray, edge, edgeThreshLow, edgeThreshHigh, 3);
+    Canny(gray, edge, edge_threshold_low, edge_threshold_high, 3);
 //    imshow("Edge map : Canny default", edge);
 }
 
@@ -43,17 +56,17 @@ void StrokeWidthTransform::gradient() {
     Scharr(gray, gradientY, CV_32F, 0, 1);
     blur(gradientX, gradientX, Size(3, 3));
     blur(gradientY, gradientY, Size(3, 3));
+    imwrite("../images/" + filename + "_gradientX.jpg", gradientX);
+    imwrite("../images/" + filename + "_gradientY.jpg", gradientY);
 //    imshow("Gradient X : Scharr", gradientX);
 //    imshow("Gradient Y : Scharr", gradientY);
 }
 
 
-void StrokeWidthTransform::showSWT() {
-    normalizeImage(SWTMatrix, SWTMatrixNorm);
-    convertScaleAbs(SWTMatrixNorm, result, 255, 0);
-    //imshow("SWT", result);
-    //waitKey(0);
-
+void StrokeWidthTransform::showAndSaveSWT() {
+    imwrite("../images/" + filename + "_SWT.jpg", result);
+    imshow("SWT", result);
+    waitKey(0);
 }
 
 
@@ -68,7 +81,7 @@ void StrokeWidthTransform::medianFilter() {
         sort(ray.points.begin(), ray.points.end(), [](const SWTPoint &lhs, const SWTPoint &rhs) -> bool {
                 return lhs.SWT < rhs.SWT;
         });
-        float median = ray.points[ray.points.size()/2].SWT;
+        float median = ray.points[ray.points.size() / 2].SWT;
         for (auto &point : ray.points) {
             point.SWT = min(median, point.SWT);
         }
@@ -83,11 +96,9 @@ void StrokeWidthTransform::buildSWT(bool dark_on_light) {
             if (edge.at<uchar>(row, col) > 0) {
                 Ray r;
 
-                SWTPoint p;
-                p.x = col;
-                p.y = row;
+                SWTPoint p(col, row);
                 r.p = p;
-                std::vector<SWTPoint> points;
+                vector<SWTPoint> points;
                 points.push_back(p);
 
                 float curX = (float)col + 0.5f;
@@ -98,7 +109,7 @@ void StrokeWidthTransform::buildSWT(bool dark_on_light) {
                 float G_y = gradientY.at<float>(row, col);
 
                 // normalize gradient
-                float mag = sqrt( (G_x * G_x) + (G_y * G_y) );
+                float mag = sqrt((G_x * G_x) + (G_y * G_y));
 
                 if (dark_on_light){
                     G_x = -G_x / mag;
@@ -108,42 +119,36 @@ void StrokeWidthTransform::buildSWT(bool dark_on_light) {
                     G_y = G_y / mag;
                 }
 
-
                 while (true) {
                     curX += G_x * prec;
                     curY += G_y * prec;
                     if ((int)(floor(curX)) != curPixX || (int)(floor(curY)) != curPixY) {
                         curPixX = (int)(floor(curX));
                         curPixY = (int)(floor(curY));
-                        // check if pixel is outside boundary of image
                         if (curPixX < 0 || (curPixX >= edge.cols) || curPixY < 0 || (curPixY >= edge.rows)) {
                             break;
                         }
 
-                        SWTPoint pnew;
-                        pnew.x = curPixX;
-                        pnew.y = curPixY;
+                        SWTPoint pnew(curPixX, curPixY);
                         points.push_back(pnew);
 
                         if (edge.at<uchar>(curPixY, curPixX) > 0) {
                             r.q = pnew;
-                            // dot product
                             float G_xt = gradientX.at<float>(curPixY, curPixX);
                             float G_yt = gradientY.at<float>(curPixY, curPixX);
-                            mag = sqrt( (G_xt * G_xt) + (G_yt * G_yt) );
+                            mag = sqrt((G_xt * G_xt) + (G_yt * G_yt));
                             if (dark_on_light){
                                 G_xt = -G_xt / mag;
                                 G_yt = -G_yt / mag;
                             } else {
                                 G_xt = G_xt / mag;
                                 G_yt = G_yt / mag;
-
                             }
                             if (acos(G_x * -G_xt + G_y * -G_yt) < PI / 2.) {
-                                float length = sqrt( ((float)r.q.x - (float)r.p.x)*((float)r.q.x - (float)r.p.x) + ((float)r.q.y - (float)r.p.y)*((float)r.q.y - (float)r.p.y));
-                                for (auto pit = points.begin(); pit != points.end(); pit++) {
-                                    int x = pit->x;
-                                    int y = pit->y;
+                                float length = sqrt(((float)r.q.x - (float)r.p.x)*((float)r.q.x - (float)r.p.x) + ((float)r.q.y - (float)r.p.y)*((float)r.q.y - (float)r.p.y));
+                                for (auto &point : points) {
+                                    int x = point.x;
+                                    int y = point.y;
                                     if (SWTMatrix.at<float>(y, x) < 0) {
                                         SWTMatrix.at<float>(y, x) = length;
                                     } else {
@@ -161,7 +166,6 @@ void StrokeWidthTransform::buildSWT(bool dark_on_light) {
             }
         }
     }
-
 }
 
 

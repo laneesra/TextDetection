@@ -13,49 +13,56 @@
 using namespace boost;
 
 
-ConnectedComponents::ConnectedComponents(Mat SWTMatrix, Mat SWTMatrixNormU) : SWTMatrix(SWTMatrix) {
+ConnectedComponents::ConnectedComponents(string filename, Mat SWTMatrix, Mat SWTMatrix_norm_u) : SWTMatrix(SWTMatrix), filename(filename) {
     enqueued = Mat(SWTMatrix.size[0], SWTMatrix.size[1], CV_8UC1, Scalar(0));
-    numOfComponent = Mat(SWTMatrix.size[0], SWTMatrix.size[1], CV_32FC1, Scalar(-1));
-    connectedComponents = Mat(SWTMatrix.size[0], SWTMatrix.size[1], CV_8UC3);
-    cvtColor(SWTMatrixNormU, connectedComponents, COLOR_GRAY2BGR);
+   // num_of_component = Mat(SWTMatrix.size[0], SWTMatrix.size[1], CV_32FC1, Scalar(-1));
+    connected_components = Mat(SWTMatrix.size[0], SWTMatrix.size[1], CV_8UC3);
+    cvtColor(SWTMatrix_norm_u, connected_components, COLOR_GRAY2BGR);
+}
+
+
+void ConnectedComponents::execute() {
+    //findComponents();
+    findComponentsBoost();
+    firstStageFilter();
+    showAndSaveComponents();
 }
 
 
 void ConnectedComponents::findComponents() {
-    queue<Point2d> q;
+    queue<SWTPoint> q;
     for (int row = 0; row < SWTMatrix.size[0]; row++) {
         for (int col = 0; col < SWTMatrix.size[1]; col++) {
             if (enqueued.at<uchar>(row, col) == 0) {
-                q.push(Point2d(row, col));
+                q.push(SWTPoint(row, col, num_of_component.at<float>(row, col)));
                 enqueued.at<uchar>(row, col) = 1;
                 while (!q.empty()) {
-                    Point2d pixel = q.back();
+                    SWTPoint pixel = q.back();
                     q.pop();
-                    auto shade = SWTMatrix.at<float>(pixel.x, pixel.y);
-                    Point2d neighbors[] = {Point2d(pixel.x, pixel.y - 1), Point2d(pixel.x - 1, pixel.y),
-                                            Point2d(pixel.x, pixel.y + 1), Point2d(pixel.x + 1, pixel.y)};
+                    auto swt = SWTMatrix.at<float>(pixel.x, pixel.y);
+                    SWTPoint neighbors[] = {SWTPoint(pixel.x, pixel.y - 1), SWTPoint(pixel.x - 1, pixel.y),
+                                            SWTPoint(pixel.x, pixel.y + 1), SWTPoint(pixel.x + 1, pixel.y)};
                     enqueued.at<uchar>(pixel.x, pixel.y) = 1;
 
-                    for (auto neigh : neighbors) {
+                    for (auto &neigh : neighbors) {
                         if (0 <= neigh.x && neigh.x < SWTMatrix.size[0] && 0 <= neigh.y && neigh.y < SWTMatrix.size[1]) {
-                            auto neigh_shade = SWTMatrix.at<float>(neigh.x, neigh.y);
+                            auto neigh_swt = SWTMatrix.at<float>(neigh.x, neigh.y);
 
-                            if (neigh_shade > 0 && shade > 0 && (shade / neigh_shade < 3 || neigh_shade / shade < 3)) {
-                                if (numOfComponent.at<float>(neigh.x, neigh.y) < 0 && numOfComponent.at<float>(pixel.x, pixel.y) < 0) {
-                                    vector<Point2d> points;
-                                    points.emplace_back(neigh.x, neigh.y);
-                                    points.emplace_back(pixel.x, pixel.y);
-                                    numOfComponent.at<float>(neigh.x, neigh.y) = components.size();
-                                    numOfComponent.at<float>(pixel.x, pixel.y) = components.size();
+                            if (neigh_swt > 0 && swt > 0 && (swt / neigh_swt < 3 || neigh_swt / swt < 3)) {
+                                if (num_of_component.at<float>(neigh.x, neigh.y) < 0 && num_of_component.at<float>(pixel.x, pixel.y) < 0) {
+                                    vector<SWTPoint> points;
+                                    points.emplace_back(neigh.x, neigh.y, num_of_component.at<float>(neigh.x, neigh.y));
+                                    points.emplace_back(pixel.x, pixel.y, num_of_component.at<float>(pixel.x, pixel.y));
+                                    num_of_component.at<float>(neigh.x, neigh.y) = components.size();
+                                    num_of_component.at<float>(pixel.x, pixel.y) = components.size();
                                     components.emplace_back(points);
-                                } else if (numOfComponent.at<float>(pixel.x, pixel.y) < 0) {
-                                    components[numOfComponent.at<float>(neigh.x, neigh.y)].points.emplace_back(pixel.x, pixel.y);
-                                    numOfComponent.at<float>(pixel.x, pixel.y) = numOfComponent.at<float>(neigh.x, neigh.y);
+                                } else if (num_of_component.at<float>(pixel.x, pixel.y) < 0) {
+                                    components[(int)num_of_component.at<float>(neigh.x, neigh.y)].points.emplace_back(pixel.x, pixel.y, num_of_component.at<float>(pixel.x, pixel.y));
+                                    num_of_component.at<float>(pixel.x, pixel.y) = num_of_component.at<float>(neigh.x, neigh.y);
                                 } else {
-                                    components[numOfComponent.at<float>(pixel.x, pixel.y)].points.emplace_back(neigh.x, neigh.y);
-                                    numOfComponent.at<float>(neigh.x, neigh.y) = numOfComponent.at<float>(pixel.x, pixel.y);
+                                    components[(int)num_of_component.at<float>(pixel.x, pixel.y)].points.emplace_back(neigh.x, neigh.y, num_of_component.at<float>(neigh.x, neigh.y));
+                                    num_of_component.at<float>(neigh.x, neigh.y) = num_of_component.at<float>(pixel.x, pixel.y);
                                 }
-
                             }
                         }
                     }
@@ -68,7 +75,7 @@ void ConnectedComponents::findComponents() {
 
 void ConnectedComponents::findComponentsBoost() {
     boost::unordered_map<int, int> map;
-    boost::unordered_map<int, Point2d> reverseMap;
+    boost::unordered_map<int, SWTPoint> reverse_map;
 
     typedef adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> Graph;
     int num_vertices = 0;
@@ -76,8 +83,8 @@ void ConnectedComponents::findComponentsBoost() {
         for (int col = 0; col < SWTMatrix.cols; col++) {
             if (SWTMatrix.at<float>(row, col) > 0) {
                 map[row * SWTMatrix.cols + col] = num_vertices;
-                Point2d p(row, col);
-                reverseMap[num_vertices] = p;
+                SWTPoint p(row, col, SWTMatrix.at<float>(row, col));
+                reverse_map[num_vertices] = p;
                 num_vertices++;
             }
         }
@@ -116,51 +123,56 @@ void ConnectedComponents::findComponentsBoost() {
 
     vector<int> c(num_vertices);
 
-    int num_comp = connected_components(g, &c[0]);
+    int num_comp = boost::connected_components(g, &c[0]);
 
     components.reserve(num_comp);
     for (int j = 0; j < num_comp; j++) {
         components.emplace_back();
     }
     for (int j = 0; j < num_vertices; j++) {
-        Point2d p = reverseMap[j];
-        (components[c[j]]).points.push_back(p);
+        components[c[j]].points.emplace_back(reverse_map[j]);
     }
-
 }
 
 
-
-void ConnectedComponents::showComponents() {
+void ConnectedComponents::firstStageFilter() {
     for (auto &comp : components) {
-        if (comp.points.size() > 20) {
-            int maxY = 0, maxX = 0;
-            int minY = SWTMatrix.size[0];
-            int minX = SWTMatrix.size[1];
+        int maxY = 0, maxX = 0;
+        int minY = SWTMatrix.size[0];
+        int minX = SWTMatrix.size[1];
 
-            for (Point2d &pixel : comp.points) {
-                maxY = max(maxY, (int)pixel.y);
-                maxX = max(maxX, (int)pixel.x);
-                minY = min(minY, (int)pixel.y);
-                minX = min(minX, (int)pixel.x);
-            }
+        for (SWTPoint &pixel : comp.points) {
+            maxY = max(maxY, pixel.y);
+            maxX = max(maxX, pixel.x);
+            minY = min(minY, pixel.y);
+            minX = min(minX, pixel.x);
+        }
 
-            int curPixel = minX;
-            while (curPixel < maxX) {
-                connectedComponents.at<Vec3b>(curPixel, maxY) = Vec3b(0, 100, 255);
-                connectedComponents.at<Vec3b>(curPixel, minY) = Vec3b(0, 100, 255);
-                curPixel++;
-            }
+        if (maxY != minY && maxX != minX && comp.isValid(maxX, minX, maxY, minY)) {
+            valid_components.emplace_back(comp);
+        }
+    }
+}
 
-            curPixel = minY;
-            while (curPixel < maxY) {
-                connectedComponents.at<Vec3b>(minX, curPixel) = Vec3b(0, 100, 255);
-                connectedComponents.at<Vec3b>(maxX, curPixel) = Vec3b(0, 100, 255);
-                curPixel++;
-            }
+
+void ConnectedComponents::showAndSaveComponents() {
+    for (auto &comp : components) {
+        int curPixel = comp.minX;
+        while (curPixel < comp.maxX) {
+            connected_components.at<Vec3b>(curPixel, comp.maxY) = Vec3b(0, 100, 255);
+            connected_components.at<Vec3b>(curPixel, comp.minY) = Vec3b(0, 100, 255);
+            curPixel++;
+        }
+
+        curPixel = comp.minY;
+        while (curPixel < comp.maxY) {
+            connected_components.at<Vec3b>(comp.minX, curPixel) = Vec3b(0, 100, 255);
+            connected_components.at<Vec3b>(comp.maxX, curPixel) = Vec3b(0, 100, 255);
+            curPixel++;
         }
     }
 
-    imshow("Connected components", connectedComponents);
+    imshow("Connected components", connected_components);
+    imwrite("../images/" + filename + "_connectedComponents.jpg", connected_components);
     waitKey(0);
 }

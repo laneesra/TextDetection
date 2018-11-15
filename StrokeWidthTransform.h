@@ -17,8 +17,14 @@ struct SWTPoint {
     float SWT;
 
     SWTPoint() = default;
-
+    SWTPoint(int x, int y) : x(x), y(y) {}
     SWTPoint(int x, int y, float SWT) : x(x), y(y), SWT(SWT){}
+/*
+    bool operator<(const SWTPoint &other) const {
+        pair<int, int> p1(this->x, this->y);
+        pair<int, int> p2(other.x, other.y);
+        return (p2 < p1);
+    }*/
 
 };
 
@@ -31,16 +37,18 @@ struct Ray {
 
 class StrokeWidthTransform {
 public:
-    int edgeThreshLow = 175;
-    int edgeThreshHigh = 320;
-    Mat image, gray, blurred, edge, gradientX, gradientY, SWTMatrix, SWTMatrixNorm, result;
+    string filename;
+    int edge_threshold_low = 175;
+    int edge_threshold_high = 320;
+    Mat image, gray, blurred, edge, gradientX, gradientY, SWTMatrix, SWTMatrix_norm, result;
     vector<Ray> rays;
 
-    StrokeWidthTransform();
+    StrokeWidthTransform(String filename, String format);
+    void execute();
     void edgeDetection();
     void gradient();
     void buildSWT(bool dark_on_light);
-    void showSWT();
+    void showAndSaveSWT();
     void medianFilter();
     void normalizeImage(Mat input, Mat output);
 };

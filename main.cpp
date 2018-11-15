@@ -11,14 +11,12 @@ using namespace cv;
 using namespace std;
 
 int main(int argc, const char** argv) {
-    StrokeWidthTransform swt;
-    swt.edgeDetection();
-    swt.gradient();
-    swt.buildSWT(true);
-    swt.medianFilter();
-    swt.showSWT();
-    ConnectedComponents cc = ConnectedComponents(swt.SWTMatrix, swt.result);
-    cc.findComponentsBoost();
-    cc.showComponents();
+    string filename = "Pict0021";
+    string format = ".jpg";
 
+    StrokeWidthTransform swt(filename, format);
+    swt.execute();
+
+    ConnectedComponents cc = ConnectedComponents(filename, swt.SWTMatrix, swt.result);
+    cc.execute();
 }
