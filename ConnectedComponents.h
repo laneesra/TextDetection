@@ -8,11 +8,11 @@
 #include "StrokeWidthTransform.h"
 
 struct Component {
-    vector<SWTPoint> points;
+    vector<Point2d> points;
 
-    Component(){};
+    Component() = default;
 
-    Component(vector<SWTPoint> points) : points(points){};
+    explicit Component(vector<Point2d> points) : points(points){};
 };
 
 class ConnectedComponents {
@@ -25,6 +25,7 @@ public:
 
     ConnectedComponents(Mat SWTMatrix, Mat SWTMatrixNormU);
     void findComponents();
+    void findComponentsBoost();
     void showComponents();
 };
 

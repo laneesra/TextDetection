@@ -16,7 +16,7 @@ struct SWTPoint {
     int y;
     float SWT;
 
-    SWTPoint(){}
+    SWTPoint() = default;
 
     SWTPoint(int x, int y, float SWT) : x(x), y(y), SWT(SWT){}
 

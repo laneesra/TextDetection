@@ -3,7 +3,6 @@
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/core/core_c.h"
-#include <stdio.h>
 #include <iostream>
 #include "StrokeWidthTransform.h"
 #include "ConnectedComponents.h"
@@ -19,7 +18,7 @@ int main(int argc, const char** argv) {
     swt.medianFilter();
     swt.showSWT();
     ConnectedComponents cc = ConnectedComponents(swt.SWTMatrix, swt.result);
-    cc.findComponents();
+    cc.findComponentsBoost();
     cc.showComponents();
 
 }
