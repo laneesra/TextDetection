@@ -13,10 +13,9 @@ using namespace std;
 int main(int argc, const char** argv) {
     string filename = "Pict0021";
     string format = ".jpg";
-
     StrokeWidthTransform swt(filename, format);
     swt.execute();
 
-    ConnectedComponents cc = ConnectedComponents(filename, swt.SWTMatrix, swt.result);
+    ConnectedComponents cc = ConnectedComponents(filename, swt.SWTMatrix, swt.result, swt.image);
     cc.execute();
 }

@@ -13,11 +13,12 @@
 using namespace boost;
 
 
-ConnectedComponents::ConnectedComponents(string filename, Mat SWTMatrix, Mat SWTMatrix_norm_u) : SWTMatrix(SWTMatrix), filename(filename) {
-    enqueued = Mat(SWTMatrix.size[0], SWTMatrix.size[1], CV_8UC1, Scalar(0));
+ConnectedComponents::ConnectedComponents(string filename, Mat SWTMatrix, Mat SWTMatrix_norm_u, Mat image) : SWTMatrix(SWTMatrix), filename(filename), image(image) {
+  //  enqueued = Mat(SWTMatrix.size[0], SWTMatrix.size[1], CV_8UC1, Scalar(0));
    // num_of_component = Mat(SWTMatrix.size[0], SWTMatrix.size[1], CV_32FC1, Scalar(-1));
     connected_components = Mat(SWTMatrix.size[0], SWTMatrix.size[1], CV_8UC3);
     cvtColor(SWTMatrix_norm_u, connected_components, COLOR_GRAY2BGR);
+    camshift = connected_components;
 }
 
 
@@ -26,6 +27,7 @@ void ConnectedComponents::execute() {
     findComponentsBoost();
     firstStageFilter();
     showAndSaveComponents();
+    computeFeatures();
 }
 
 
@@ -100,7 +102,7 @@ void ConnectedComponents::findComponentsBoost() {
                 if (col + 1 < SWTMatrix.cols) {
                     float right = SWTMatrix.at<float>(row, col + 1);
                     if (right > 0 && (swt / right <= 3.0 || right / swt <= 3.0))
-                        add_edge(this_pixel, map.at(row * SWTMatrix.cols + col + 1), g);
+                        add_edge(this_pixel, map.at(row *SWTMatrix.cols + col + 1), g);
                 }
                 if (col - 1 >= 0) {
                     float left = SWTMatrix.at<float>(row , col - 1);
@@ -156,23 +158,72 @@ void ConnectedComponents::firstStageFilter() {
 
 
 void ConnectedComponents::showAndSaveComponents() {
-    for (auto &comp : components) {
+    for (auto &comp : valid_components) {
         int curPixel = comp.minX;
         while (curPixel < comp.maxX) {
-            connected_components.at<Vec3b>(curPixel, comp.maxY) = Vec3b(0, 100, 255);
-            connected_components.at<Vec3b>(curPixel, comp.minY) = Vec3b(0, 100, 255);
+            connected_components.at<Vec3b>(comp.maxY, curPixel) = Vec3b(0, 100, 255);
+            connected_components.at<Vec3b>(comp.minY, curPixel) = Vec3b(0, 100, 255);
             curPixel++;
         }
 
         curPixel = comp.minY;
         while (curPixel < comp.maxY) {
-            connected_components.at<Vec3b>(comp.minX, curPixel) = Vec3b(0, 100, 255);
-            connected_components.at<Vec3b>(comp.maxX, curPixel) = Vec3b(0, 100, 255);
+            connected_components.at<Vec3b>(curPixel, comp.minX) = Vec3b(0, 100, 255);
+            connected_components.at<Vec3b>(curPixel, comp.maxX) = Vec3b(0, 100, 255);
             curPixel++;
         }
     }
 
     imshow("Connected components", connected_components);
     imwrite("../images/" + filename + "_connectedComponents.jpg", connected_components);
+    waitKey(0);
+}
+
+
+void ConnectedComponents::computeFeatures() {
+    Mat backproj, hsv, hue, mask, hist;
+    cvtColor(image, hsv, COLOR_BGR2HSV);
+    int vmin = 10, vmax = 256, smin = 30;
+    inRange(hsv, Scalar(0, smin, vmin), Scalar(180, 256, vmax), mask);
+    int ch[] = {0, 0};
+    hue.create(hsv.size(), hsv.depth());
+    mixChannels(&hsv, 1, &hue, 1, ch, 1);
+    int hsize = 16;
+    float hranges[] = {0, 180};
+    const float *phranges = hranges;
+
+    for (auto c : valid_components) {
+        Rect compWindow;
+        compWindow.x = c.minX;
+        compWindow.y = c.minY;
+        compWindow.width = (int)c.width;
+        compWindow.height = (int)c.height;
+        compWindow &= Rect(0, 0, camshift.cols, camshift.rows);
+
+        Mat roi(hue, compWindow), maskroi(mask, compWindow);
+        calcHist(&roi, 1, nullptr, maskroi, hist, 1, &hsize, &phranges);
+        normalize(hist, hist, 0, 255, NORM_MINMAX);
+        calcBackProject(&hue, 1, nullptr, hist, backproj, &phranges);
+        backproj &= mask;
+
+        RotatedRect compBox = CamShift(backproj, compWindow,
+                                       TermCriteria(TermCriteria::EPS | TermCriteria::COUNT, 10, 1));
+
+        if (compWindow.area() <= 1) {
+            int cols = backproj.cols, rows = backproj.rows, r = (MIN(cols, rows) + 5) / 6;
+            compWindow = Rect(compWindow.x - r, compWindow.y - r,
+                              compWindow.x + r, compWindow.y + r) &
+                         Rect(0, 0, cols, rows);
+        }
+
+        c.center = compBox.center;
+        c.orientation = compBox.angle;
+        c.characteristic_scale = compBox.size.width + compBox.size.height;
+       
+        ellipse(camshift, compBox, Scalar(0, 0, 255), 3, LINE_AA);
+    }
+
+    imshow("Camshift", camshift);
+    imwrite("../images/" + filename + "_camshift.jpg", camshift);
     waitKey(0);
 }

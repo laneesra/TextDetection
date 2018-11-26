@@ -19,19 +19,22 @@ struct Component {
     float WV; // width variation range [0, 1]
     float AR; // aspect ratio range [0.1, 1]
     float OR; // occupation ratio range [0.1, 1]
+    float characteristic_scale;
+    float orientation;
+    Point2d center;
 
     Component() = default;
 
     explicit Component(vector<SWTPoint> points) : points(points){};
 
     bool isValid(int maxX, int minX, int maxY, int minY) {
-        this->maxX = maxX;
-        this->minX = minX;
-        this->maxY = maxY;
-        this->minY = minY;
+        this->maxX = maxY;
+        this->minX = minY;
+        this->maxY = maxX;
+        this->minY = minX;
 
-        width = (float)maxY - minY + 1;
-        height = (float)maxX - minX + 1;
+        width = (float)this->maxX - this->minX + 1;
+        height = (float)this->maxY - this->minY + 1;
 
         float q = (float)points.size();
 
@@ -53,7 +56,7 @@ struct Component {
         AR = min(width / height, height / width);
         OR = q / (width * height);
 
-        bool valid = 0 <= WV && WV <= 1 && 0.1 <= AR && AR <= 1 && 0.1 <= OR && OR <= 1;
+        bool valid = width != 0 && height != 0 && 0 <= WV && WV <= 1 && 0.1 <= AR && AR <= 1 && 0.1 <= OR && OR <= 1;
         return valid;
     }
 };
@@ -68,13 +71,16 @@ public:
     Mat num_of_component;
     Mat SWTMatrix;
     Mat connected_components;
+    Mat camshift;
+    Mat image;
 
-    ConnectedComponents(string filename, Mat SWTMatrix, Mat SWTMatrixNormU);
+    ConnectedComponents(string filename, Mat SWTMatrix, Mat SWTMatrixNormU, Mat image);
     void execute();
     void findComponents();
     void findComponentsBoost();
     void showAndSaveComponents();
     void firstStageFilter();
+    void computeFeatures();
 };
 
 
