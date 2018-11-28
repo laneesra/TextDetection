@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+message SWTPoint_buf {
+    int32 x = 1;
+    int32 y = 2;
+    float SWT = 3;
+}
+
+message Component {
+    repeated SWTPoint_buf points = 1;
+    int32 maxX = 2;
+    int32 minX = 3;
+    int32 maxY = 4;
+    int32 minY = 5;
+    float width = 6;
+    float height = 7;
+    float mean = 8;
+
+    // features for filtering
+    float SD = 9; // standard deviation
+    float WV = 10; // width variation range [0, 1]
+    float AR = 11; // aspect ratio range [0.1, 1]
+    float OR = 12; // occupation ratio range [0.1, 1]
+    float characteristic_scale = 13;
+    float orientation = 14;
+    float center_x = 15;
+    float center_y = 16;
+}
+
+message Components {
+    repeated Component components = 1;
+}

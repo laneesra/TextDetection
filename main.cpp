@@ -4,7 +4,6 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/core/core_c.h"
 #include <iostream>
-#include "StrokeWidthTransform.h"
 #include "ConnectedComponents.h"
 
 using namespace cv;

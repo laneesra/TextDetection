@@ -2,6 +2,7 @@
 // Created by laneesra on 07.11.18.
 //
 
+#pragma once
 #ifndef TEXTDETECTION_STROKEWIDTHTRANSFORM_H
 #define TEXTDETECTION_STROKEWIDTHTRANSFORM_H
 
@@ -17,7 +18,7 @@ struct SWTPoint {
     float SWT;
 
     SWTPoint() = default;
-    SWTPoint(int x, int y) : x(x), y(y) {}
+    SWTPoint(int x, int y) : x(x), y(y), SWT(0) {}
     SWTPoint(int x, int y, float SWT) : x(x), y(y), SWT(SWT){}
 /*
     bool operator<(const SWTPoint &other) const {
