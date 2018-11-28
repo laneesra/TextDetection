@@ -28,6 +28,7 @@ void ConnectedComponents::execute() {
     firstStageFilter();
     showAndSaveComponents();
     computeCamshiftFeatures();
+    saveData();
 }
 
 /*
@@ -262,4 +263,15 @@ void ConnectedComponents::computeCamshiftFeatures() {
     imshow("Camshift", camshift);
     imwrite("../images/" + filename + "_camshift.jpg", camshift);
     waitKey(0);
+}
+
+
+void ConnectedComponents::saveData() {
+    const string result_file = "../components.bin";
+    fstream output(result_file, ios::out | ios::binary);
+    if (!valid_components.SerializeToOstream(&output)) {
+        cerr << "Failed to serialize data" << endl;
+    }
+    output.close();
+    google::protobuf::ShutdownProtobufLibrary();
 }

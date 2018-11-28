@@ -29,6 +29,7 @@ public:
     void firstStageFilter();
     void computeCamshiftFeatures();
     void setValidComponent(Component comp, int maxX, int minX, int maxY, int minY);
+    void saveData();
 };
 
 
