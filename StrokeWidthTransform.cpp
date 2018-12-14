@@ -18,8 +18,8 @@
 using namespace cv;
 using namespace std;
 
-StrokeWidthTransform::StrokeWidthTransform(string filename, string format) : filename(filename) {
-    image = imread("../images/original/" + filename + format);
+StrokeWidthTransform::StrokeWidthTransform(string filename) : filename(filename) {
+    image = imread(filename);
     int height = image.size[0];
     int width = image.size[1];
     gray = Mat(height, width, CV_8UC1);
@@ -31,21 +31,42 @@ StrokeWidthTransform::StrokeWidthTransform(string filename, string format) : fil
     result = Mat(height, width, CV_8UC1);
 }
 
-void StrokeWidthTransform::execute() {
+void StrokeWidthTransform::execute(bool dark_on_light) {
     edgeDetection();
     gradient();
     // TODO two-side pass for true and false
-    buildSWT(true); // true if white text on dark background, else false
+    buildSWT(dark_on_light); // true if white text on dark background, else false
     medianFilter();
     normalizeImage(SWTMatrix, SWTMatrix_norm);
     convertScaleAbs(SWTMatrix_norm, result, 255, 0);
-    //showAndSaveSWT();
+    showAndSaveSWT();
 }
 
 void StrokeWidthTransform::edgeDetection() {
     cvtColor(image, gray, COLOR_BGR2GRAY);
+    blur(gray, gray, Size(3, 3));
+
+/*    vector<uchar> array;
+    if (gray.isContinuous()) {
+        array.assign(gray.datastart, gray.dataend);
+    } else {
+        for (int i = 0; i < gray.rows; ++i) {
+            array.insert(array.end(), gray.ptr<uchar>(i), gray.ptr<uchar>(i) + gray.cols);
+        }
+    }
+    nth_element(array.begin(), array.begin() + array.max_size() / 2, array.end());
+    float median = array[array.size() / 2];
+    float sigma = 0.1;
+    edge_threshold_low = (int)max(0., (1.0 - sigma) * median);
+    edge_threshold_high = (int)min(0., (1.0 + sigma) * median);*/
+    int tresh = 0;
+    Mat dst;
+    threshold(gray, dst, tresh, 255, THRESH_BINARY + THRESH_OTSU);
+
     Canny(gray, edge, edge_threshold_low, edge_threshold_high, 3);
-//    imshow("Edge map : Canny default", edge);
+    filename = filename.substr(filename.size() - 12);
+    imwrite("../images/" + filename + "_Canny.jpg", edge);
+//    waitKey(0);
 }
 
 
@@ -54,19 +75,19 @@ void StrokeWidthTransform::gradient() {
     blur(gray, blurred, Size(5, 5));
     Scharr(gray, gradientX, CV_32F, 1, 0);
     Scharr(gray, gradientY, CV_32F, 0, 1);
-    blur(gradientX, gradientX, Size(3, 3));
-    blur(gradientY, gradientY, Size(3, 3));
-    imwrite("../images/" + filename + "_gradientX.jpg", gradientX);
-    imwrite("../images/" + filename + "_gradientY.jpg", gradientY);
-//    imshow("Gradient X : Scharr", gradientX);
-//    imshow("Gradient Y : Scharr", gradientY);
+    blur(gradientX, gradientX, Size(5, 5));
+    blur(gradientY, gradientY, Size(5, 5));
+ //   imwrite("../images/" + filename + "_gradientX.jpg", gradientX);
+ //   imwrite("../images/" + filename + "_gradientY.jpg", gradientY);
+ //   imshow("Gradient X : Scharr", gradientX);
+ //   imshow("Gradient Y : Scharr", gradientY);
 }
 
 
 void StrokeWidthTransform::showAndSaveSWT() {
-    imwrite("../images/" + filename + "_SWT.jpg", result);
-    imshow("SWT", result);
-    waitKey(0);
+   // imwrite("../images/" + filename + "_SWT.jpg", result);
+   // imshow("SWT", result);
+   // waitKey(0);
 }
 
 

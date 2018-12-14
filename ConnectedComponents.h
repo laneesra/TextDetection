@@ -12,24 +12,28 @@
 class ConnectedComponents {
 public:
     string filename;
-    Components components;
-    Components valid_components;
+    Components componentsDark;
+    Components componentsLight;
+    Components validComponents;
    // Mat enqueued;
    // Mat num_of_component;
-    Mat SWTMatrix;
-    Mat connected_components;
-    Mat camshift;
+    Mat SWTMatrixDark;
+    Mat SWTMatrixLight;
+    Mat connectedComponentsDark;
+    Mat connectedComponentsLight;
     Mat image;
 
-    ConnectedComponents(string filename, Mat SWTMatrix, Mat SWTMatrixNormU, Mat image);
+    ConnectedComponents(string filename, Mat SWTMatrixDark, Mat SWTMatrixDarkNormU, Mat SWTMatrixLight, Mat SWTMatrixLightNormU, Mat image);
     void execute();
     void findComponents();
-    void findComponentsBoost();
+    void findComponentsBoost(bool darkOnLight);
     void showAndSaveComponents();
-    void firstStageFilter();
+    void firstStageFilter(bool darkOnLight);
     void computeCamshiftFeatures();
-    void setValidComponent(Component comp, int maxX, int minX, int maxY, int minY);
+    void setValidComponent(Component* comp, int maxX, int minX, int maxY, int minY);
     void saveData();
+    void markComponents();
+    void improveComponentSWT(Component* comp, Mat morphImg, bool darkOnLight);
 };
 
 

@@ -117,10 +117,17 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, wv_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, ar_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, or__),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, major_axis_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, minor_axis_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, characteristic_scale_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, orientation_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, center_x_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, center_y_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, image_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, id_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, istext_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, isdarkonlight_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, pred_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Components, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -131,7 +138,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::SWTPoint_buf)},
   { 8, -1, sizeof(::Component)},
-  { 29, -1, sizeof(::Components)},
+  { 36, -1, sizeof(::Components)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -162,19 +169,22 @@ void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
       "\n\020Components.proto\"1\n\014SWTPoint_buf\022\t\n\001x\030"
-      "\001 \001(\005\022\t\n\001y\030\002 \001(\005\022\013\n\003SWT\030\003 \001(\002\"\226\002\n\tCompon"
+      "\001 \001(\005\022\t\n\001y\030\002 \001(\005\022\013\n\003SWT\030\003 \001(\002\"\216\003\n\tCompon"
       "ent\022\035\n\006points\030\001 \003(\0132\r.SWTPoint_buf\022\014\n\004ma"
       "xX\030\002 \001(\005\022\014\n\004minX\030\003 \001(\005\022\014\n\004maxY\030\004 \001(\005\022\014\n\004"
       "minY\030\005 \001(\005\022\r\n\005width\030\006 \001(\002\022\016\n\006height\030\007 \001("
       "\002\022\014\n\004mean\030\010 \001(\002\022\n\n\002SD\030\t \001(\002\022\n\n\002WV\030\n \001(\002\022"
-      "\n\n\002AR\030\013 \001(\002\022\n\n\002OR\030\014 \001(\002\022\034\n\024characteristi"
-      "c_scale\030\r \001(\002\022\023\n\013orientation\030\016 \001(\002\022\020\n\010ce"
-      "nter_x\030\017 \001(\002\022\020\n\010center_y\030\020 \001(\002\",\n\nCompon"
+      "\n\n\002AR\030\013 \001(\002\022\n\n\002OR\030\014 \001(\002\022\022\n\nmajor_axis\030\r "
+      "\001(\002\022\022\n\nminor_axis\030\016 \001(\002\022\034\n\024characteristi"
+      "c_scale\030\017 \001(\002\022\023\n\013orientation\030\020 \001(\002\022\020\n\010ce"
+      "nter_x\030\021 \001(\002\022\020\n\010center_y\030\022 \001(\002\022\r\n\005image\030"
+      "\023 \001(\005\022\n\n\002id\030\024 \001(\005\022\016\n\006isText\030\025 \001(\010\022\025\n\risD"
+      "arkOnLight\030\026 \001(\010\022\014\n\004pred\030\027 \001(\010\",\n\nCompon"
       "ents\022\036\n\ncomponents\030\001 \003(\0132\n.Componentb\006pr"
       "oto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 404);
+      descriptor, 524);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "Components.proto", &protobuf_RegisterTypes);
 }
@@ -507,10 +517,17 @@ const int Component::kSDFieldNumber;
 const int Component::kWVFieldNumber;
 const int Component::kARFieldNumber;
 const int Component::kORFieldNumber;
+const int Component::kMajorAxisFieldNumber;
+const int Component::kMinorAxisFieldNumber;
 const int Component::kCharacteristicScaleFieldNumber;
 const int Component::kOrientationFieldNumber;
 const int Component::kCenterXFieldNumber;
 const int Component::kCenterYFieldNumber;
+const int Component::kImageFieldNumber;
+const int Component::kIdFieldNumber;
+const int Component::kIsTextFieldNumber;
+const int Component::kIsDarkOnLightFieldNumber;
+const int Component::kPredFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 Component::Component()
@@ -526,15 +543,15 @@ Component::Component(const Component& from)
       points_(from.points_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::memcpy(&maxx_, &from.maxx_,
-    static_cast<size_t>(reinterpret_cast<char*>(&center_y_) -
-    reinterpret_cast<char*>(&maxx_)) + sizeof(center_y_));
+    static_cast<size_t>(reinterpret_cast<char*>(&pred_) -
+    reinterpret_cast<char*>(&maxx_)) + sizeof(pred_));
   // @@protoc_insertion_point(copy_constructor:Component)
 }
 
 void Component::SharedCtor() {
   ::memset(&maxx_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&center_y_) -
-      reinterpret_cast<char*>(&maxx_)) + sizeof(center_y_));
+      reinterpret_cast<char*>(&pred_) -
+      reinterpret_cast<char*>(&maxx_)) + sizeof(pred_));
 }
 
 Component::~Component() {
@@ -567,8 +584,8 @@ void Component::Clear() {
 
   points_.Clear();
   ::memset(&maxx_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&center_y_) -
-      reinterpret_cast<char*>(&maxx_)) + sizeof(center_y_));
+      reinterpret_cast<char*>(&pred_) -
+      reinterpret_cast<char*>(&maxx_)) + sizeof(pred_));
   _internal_metadata_.Clear();
 }
 
@@ -748,10 +765,38 @@ bool Component::MergePartialFromCodedStream(
         break;
       }
 
-      // float characteristic_scale = 13;
+      // float major_axis = 13;
       case 13: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(109u /* 109 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &major_axis_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // float minor_axis = 14;
+      case 14: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(117u /* 117 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &minor_axis_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // float characteristic_scale = 15;
+      case 15: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(125u /* 125 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
@@ -762,10 +807,10 @@ bool Component::MergePartialFromCodedStream(
         break;
       }
 
-      // float orientation = 14;
-      case 14: {
+      // float orientation = 16;
+      case 16: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(117u /* 117 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(133u /* 133 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
@@ -776,10 +821,10 @@ bool Component::MergePartialFromCodedStream(
         break;
       }
 
-      // float center_x = 15;
-      case 15: {
+      // float center_x = 17;
+      case 17: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(125u /* 125 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(141u /* 141 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
@@ -790,14 +835,84 @@ bool Component::MergePartialFromCodedStream(
         break;
       }
 
-      // float center_y = 16;
-      case 16: {
+      // float center_y = 18;
+      case 18: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(133u /* 133 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(149u /* 149 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &center_y_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // int32 image = 19;
+      case 19: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(152u /* 152 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &image_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // int32 id = 20;
+      case 20: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(160u /* 160 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &id_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // bool isText = 21;
+      case 21: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(168u /* 168 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &istext_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // bool isDarkOnLight = 22;
+      case 22: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(176u /* 176 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &isdarkonlight_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // bool pred = 23;
+      case 23: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(184u /* 184 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &pred_)));
         } else {
           goto handle_unusual;
         }
@@ -894,24 +1009,59 @@ void Component::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteFloat(12, this->or_(), output);
   }
 
-  // float characteristic_scale = 13;
+  // float major_axis = 13;
+  if (this->major_axis() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(13, this->major_axis(), output);
+  }
+
+  // float minor_axis = 14;
+  if (this->minor_axis() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(14, this->minor_axis(), output);
+  }
+
+  // float characteristic_scale = 15;
   if (this->characteristic_scale() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteFloat(13, this->characteristic_scale(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(15, this->characteristic_scale(), output);
   }
 
-  // float orientation = 14;
+  // float orientation = 16;
   if (this->orientation() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteFloat(14, this->orientation(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(16, this->orientation(), output);
   }
 
-  // float center_x = 15;
+  // float center_x = 17;
   if (this->center_x() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteFloat(15, this->center_x(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(17, this->center_x(), output);
   }
 
-  // float center_y = 16;
+  // float center_y = 18;
   if (this->center_y() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteFloat(16, this->center_y(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(18, this->center_y(), output);
+  }
+
+  // int32 image = 19;
+  if (this->image() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(19, this->image(), output);
+  }
+
+  // int32 id = 20;
+  if (this->id() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(20, this->id(), output);
+  }
+
+  // bool isText = 21;
+  if (this->istext() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(21, this->istext(), output);
+  }
+
+  // bool isDarkOnLight = 22;
+  if (this->isdarkonlight() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(22, this->isdarkonlight(), output);
+  }
+
+  // bool pred = 23;
+  if (this->pred() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(23, this->pred(), output);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -991,24 +1141,59 @@ void Component::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(12, this->or_(), target);
   }
 
-  // float characteristic_scale = 13;
+  // float major_axis = 13;
+  if (this->major_axis() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(13, this->major_axis(), target);
+  }
+
+  // float minor_axis = 14;
+  if (this->minor_axis() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(14, this->minor_axis(), target);
+  }
+
+  // float characteristic_scale = 15;
   if (this->characteristic_scale() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(13, this->characteristic_scale(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(15, this->characteristic_scale(), target);
   }
 
-  // float orientation = 14;
+  // float orientation = 16;
   if (this->orientation() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(14, this->orientation(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(16, this->orientation(), target);
   }
 
-  // float center_x = 15;
+  // float center_x = 17;
   if (this->center_x() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(15, this->center_x(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(17, this->center_x(), target);
   }
 
-  // float center_y = 16;
+  // float center_y = 18;
   if (this->center_y() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(16, this->center_y(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(18, this->center_y(), target);
+  }
+
+  // int32 image = 19;
+  if (this->image() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(19, this->image(), target);
+  }
+
+  // int32 id = 20;
+  if (this->id() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(20, this->id(), target);
+  }
+
+  // bool isText = 21;
+  if (this->istext() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(21, this->istext(), target);
+  }
+
+  // bool isDarkOnLight = 22;
+  if (this->isdarkonlight() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(22, this->isdarkonlight(), target);
+  }
+
+  // bool pred = 23;
+  if (this->pred() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(23, this->pred(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -1102,24 +1287,63 @@ size_t Component::ByteSizeLong() const {
     total_size += 1 + 4;
   }
 
-  // float characteristic_scale = 13;
+  // float major_axis = 13;
+  if (this->major_axis() != 0) {
+    total_size += 1 + 4;
+  }
+
+  // float minor_axis = 14;
+  if (this->minor_axis() != 0) {
+    total_size += 1 + 4;
+  }
+
+  // float characteristic_scale = 15;
   if (this->characteristic_scale() != 0) {
     total_size += 1 + 4;
   }
 
-  // float orientation = 14;
+  // float orientation = 16;
   if (this->orientation() != 0) {
-    total_size += 1 + 4;
+    total_size += 2 + 4;
   }
 
-  // float center_x = 15;
+  // float center_x = 17;
   if (this->center_x() != 0) {
-    total_size += 1 + 4;
+    total_size += 2 + 4;
   }
 
-  // float center_y = 16;
+  // float center_y = 18;
   if (this->center_y() != 0) {
     total_size += 2 + 4;
+  }
+
+  // int32 image = 19;
+  if (this->image() != 0) {
+    total_size += 2 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->image());
+  }
+
+  // int32 id = 20;
+  if (this->id() != 0) {
+    total_size += 2 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->id());
+  }
+
+  // bool isText = 21;
+  if (this->istext() != 0) {
+    total_size += 2 + 1;
+  }
+
+  // bool isDarkOnLight = 22;
+  if (this->isdarkonlight() != 0) {
+    total_size += 2 + 1;
+  }
+
+  // bool pred = 23;
+  if (this->pred() != 0) {
+    total_size += 2 + 1;
   }
 
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
@@ -1183,6 +1407,12 @@ void Component::MergeFrom(const Component& from) {
   if (from.or_() != 0) {
     set_or_(from.or_());
   }
+  if (from.major_axis() != 0) {
+    set_major_axis(from.major_axis());
+  }
+  if (from.minor_axis() != 0) {
+    set_minor_axis(from.minor_axis());
+  }
   if (from.characteristic_scale() != 0) {
     set_characteristic_scale(from.characteristic_scale());
   }
@@ -1194,6 +1424,21 @@ void Component::MergeFrom(const Component& from) {
   }
   if (from.center_y() != 0) {
     set_center_y(from.center_y());
+  }
+  if (from.image() != 0) {
+    set_image(from.image());
+  }
+  if (from.id() != 0) {
+    set_id(from.id());
+  }
+  if (from.istext() != 0) {
+    set_istext(from.istext());
+  }
+  if (from.isdarkonlight() != 0) {
+    set_isdarkonlight(from.isdarkonlight());
+  }
+  if (from.pred() != 0) {
+    set_pred(from.pred());
   }
 }
 
@@ -1233,10 +1478,17 @@ void Component::InternalSwap(Component* other) {
   swap(wv_, other->wv_);
   swap(ar_, other->ar_);
   swap(or__, other->or__);
+  swap(major_axis_, other->major_axis_);
+  swap(minor_axis_, other->minor_axis_);
   swap(characteristic_scale_, other->characteristic_scale_);
   swap(orientation_, other->orientation_);
   swap(center_x_, other->center_x_);
   swap(center_y_, other->center_y_);
+  swap(image_, other->image_);
+  swap(id_, other->id_);
+  swap(istext_, other->istext_);
+  swap(isdarkonlight_, other->isdarkonlight_);
+  swap(pred_, other->pred_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
 }
 
