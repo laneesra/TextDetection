@@ -36,7 +36,7 @@ void ConnectedComponents::execute() {
     firstStageFilter(false);
 
     showAndSaveComponents();
-   // markComponents();
+    //markComponents();
     computeCamshiftFeatures();
     saveData();
 }
@@ -187,6 +187,7 @@ void ConnectedComponents::firstStageFilter(bool darkOnLight) {
    // waitKey(0);
 
     erode(morphImg, morphImg, element);
+
    // imshow("Erosion", morphImg);
    // waitKey(0);
 

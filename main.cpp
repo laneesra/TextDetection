@@ -12,7 +12,7 @@ using namespace std;
 
 int main(int argc, const char** argv) {
     vector<string> fn;
-    glob("/home/laneesra/PycharmProjects/TextDetection/MSRA-TD500/train/catboost/IMG_0605.JPG", fn, false);
+    glob("/home/laneesra/PycharmProjects/TextDetection/MSRA-TD500/train/IMG_0064.JPG", fn, false);
     //glob("/home/laneesra/Документы/курсач/svt1/img/IMG_1802.jpg", fn, false);
     //  image = imread("../images/original/" + filename + format);
 
