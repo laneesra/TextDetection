@@ -8,6 +8,8 @@
 
 #include "StrokeWidthTransform.h"
 #include "Components.pb.h"
+#include <opencv2/opencv.hpp>
+
 
 class ConnectedComponents {
 public:

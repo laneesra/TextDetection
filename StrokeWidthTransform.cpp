@@ -63,7 +63,7 @@ void StrokeWidthTransform::edgeDetection() {
     Mat dst;
     threshold(gray, dst, tresh, 255, THRESH_BINARY + THRESH_OTSU);
 
-    Canny(gray, edge, edge_threshold_low, edge_threshold_high, 3);
+    Canny(dst, edge, edge_threshold_low, edge_threshold_high, 3);
     filename = filename.substr(filename.size() - 12);
     imwrite("../images/" + filename + "_Canny.jpg", edge);
 //    waitKey(0);

@@ -34,7 +34,6 @@ void ConnectedComponents::execute() {
 
     findComponentsBoost(false);
     firstStageFilter(false);
-
     showAndSaveComponents();
     //markComponents();
     computeCamshiftFeatures();
@@ -371,46 +370,72 @@ void ConnectedComponents::improveComponentSWT(Component* comp, Mat morphImg, boo
 
 
 void ConnectedComponents::computeCamshiftFeatures() {
-    Mat backproj, hsv, hue, mask, hist;
-    cvtColor(image, hsv, COLOR_BGR2HSV);
-    int vmin = 10, vmax = 256, smin = 30;
-    inRange(hsv, Scalar(0, smin, vmin), Scalar(180, 256, vmax), mask);
-    int ch[] = {0, 0};
-    hue.create(hsv.size(), hsv.depth());
-    mixChannels(&hsv, 1, &hue, 1, ch, 1);
-    int hsize = 16;
-    float hranges[] = {0, 180};
-    const float *phranges = hranges;
+    int edge_threshold_low = 80;
+    int edge_threshold_high = edge_threshold_low * 2;
+    int trash = 0;
+    Mat angles = Mat(image.size[0], image.size[1], CV_32F, Scalar(0));
+    Mat gray, edge;
+    cvtColor(image, gray, COLOR_BGR2GRAY);
+    blur(gray, gray, Size(3, 3));
+    Mat dst, cdst;
+    threshold(gray, dst, trash, 255, THRESH_BINARY + THRESH_OTSU);
+    Canny(dst, edge, edge_threshold_low, edge_threshold_high, 3);
+    cvtColor(edge, cdst, COLOR_GRAY2BGR);
+    vector<Vec4i> lines;
+    HoughLinesP(edge, lines, 1, CV_PI / 180, 50, 10, 100);
+    for (size_t i = 0; i < lines.size(); i++) {
+        Vec4i l = lines[i];
+        Point p1, p2;
+        p1 = Point(l[0], l[1]);
+        p2 = Point(l[2], l[3]);
+        line(cdst, p1, p2, Scalar(0, 0, 255), 3, 2);
+        float angle = roundf(atan2(p1.y - p2.y, p1.x - p2.x) * 100) / 100;
+        LineIterator it(angles, p1, p2, 8);
+        LineIterator it2 = it;
 
+        for(int i = 0; i < it2.count; i++, ++it2) {
+            if (angles.at<float>(it2.pos()) != 0) {
+                angles.at<float>(it2.pos()) += angle;
+                angles.at<float>(it2.pos()) /= 2;
+                angles.at<float>(it2.pos()) = roundf(angles.at<float>(it2.pos()) * 100) / 100;
+            } else {
+                angles.at<float>(it2.pos()) = angle;
+            }
+        }
+    }
+
+    imshow("lines", cdst);
+    waitKey(0);
     for (int i = 0; i < validComponents.components().size(); i++) {
         auto c = validComponents.mutable_components(i);
         c->set_image(stoi(filename.substr(4, 4)));
         c->set_id(i);
+        float orientation = 0;
+        float sumY = 0, sumX = 0;
+        for (auto p : c->points()) {
+            sumY += p.y();
+            sumX += p.x();
+            if (angles.at<float>(p.x(), p.y()) != 0) {
+                if (orientation != 0) {
+                    orientation += angles.at<float>(p.x(), p.y());
+                    orientation /= 2;
+                } else {
+                    orientation = angles.at<float>(p.x(), p.y());
+                }
+            }
+        }
+        sumY /= c->points().size();
+        sumX /= c->points().size();
+        c->set_orientation(orientation);
+        c->set_center_x(sumX);
+        c->set_center_y(sumY);
 
-        Rect compWindow;
-        compWindow.x = c->minx();
-        compWindow.y = c->miny();
-        compWindow.width = (int)c->width();
-        compWindow.height = (int)c->height();
-        compWindow &= Rect(0, 0, image.cols, image.rows);
+        // TODO get rotated bounding box
 
-        Mat roi(hue, compWindow), maskroi(mask, compWindow);
-        calcHist(&roi, 1, nullptr, maskroi, hist, 1, &hsize, &phranges);
-        normalize(hist, hist, 0, 255, NORM_MINMAX);
-        calcBackProject(&hue, 1, nullptr, hist, backproj, &phranges);
-        backproj &= mask;
-        RotatedRect compBox = CamShift(backproj, compWindow,
-                                       TermCriteria(TermCriteria::EPS | TermCriteria::COUNT, 10, 1));
-        c->set_center_x(compBox.center.x);
-        c->set_center_y(compBox.center.y);
-        c->set_orientation(compBox.angle);
-        c->set_characteristic_scale(compBox.size.width + compBox.size.height);
-        c->set_major_axis(compBox.size.height);
-        c->set_minor_axis(compBox.size.width);
-        cout << c->center_y() << " " << c->orientation() << " " << c->major_axis() << " " <<  c->minor_axis() << endl;
 
-  //      ellipse(camshift, compBox, Scalar(0, 0, 255), 3, LINE_AA);
     }
+
+
 
  //   imshow("Camshift", camshift);
  //   imwrite("../images/catboost/" + filename + "_camshift.jpg", camshift);
