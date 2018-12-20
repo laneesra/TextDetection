@@ -58,7 +58,7 @@ class Chain(object):
 
         self.left_bottom = (compsX[0].minX, compsY[0].minY)
         self.left_top = (compsX[0].minX, compsY[0].maxY)
-        self.right_top = (compsX[len(compsX)-1].maxX, compsY[len(compsY)-1].maxY)
+        self.right_top = (compsX[len(compsX) - 1].maxX, compsY[len(compsY) - 1].maxY)
         self.right_bottom = (compsX[len(compsX) - 1].maxX, compsY[len(compsY) - 1].minY)
 
 

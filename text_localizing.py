@@ -8,7 +8,7 @@ import components_chain as chains
 
 
 def text_localizing():
-    id = '2220' #2075
+    id = '1866' #2224 1866 1835 1709 1558 0849 0021
     components = pbcomp.Components()
 
     f = open("/home/laneesra/CLionProjects/TextDetection/protobins/component_IMG_" + id + ".bin", "rb")
@@ -17,7 +17,9 @@ def text_localizing():
 
     pairs = chains.find_pairs(components)
     lines = chains.merge_chains(pairs)
-    filename = '/home/laneesra/PycharmProjects/TextDetection/MSRA-TD500/test/IMG_' + str(id) + '.JPG'
+   # filename = '/home/laneesra/PycharmProjects/TextDetection/MSRA-TD500/test/IMG_' + id + '.JPG'
+    filename = '/home/laneesra/PycharmProjects/TextDetection/MSRA-TD500/train/IMG_' + id + '.JPG'
+
     B, G, R = cv.split(cv.imread(filename, 1))
     img = cv.merge((R, G, B))
     for i, line in enumerate(lines):

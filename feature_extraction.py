@@ -3,7 +3,7 @@ import pickle
 
 from catboost import CatBoostClassifier
 from catboost import *
-import cv2 as cv
+from catboost.utils import create_cd
 from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import KFold, cross_val_score
@@ -12,13 +12,13 @@ import Components_pb2 as pbcomp
 import csv
 import pandas
 import numpy as np
-
+import cv2
 
 
 comp_fieldnames = ['image', 'id', 'width', 'height', 'mean', 'standard deviation', 'width variation', 'aspect ratio',
                   'occupation ratio', 'minor axis', 'major axis', 'axial ratio', 'orientation', 'density',
                   'isDarkOnLight', 'text']
-n = 81
+
 k = 64
 
 #train_id = ['0204', '0478', '1515', '1685', '1692', '1802', '2046', '2077', '1504', '1502', '1702'];
@@ -46,7 +46,7 @@ def write_to_csv(id, components):
         count = 0
         for comp in components.components:
             q = len(comp.points)
-            S = comp.characteristic_scale
+            S = comp.minor_axis + comp.major_axis
             if comp.minor_axis == 0 or comp.major_axis == 0:
                 writer.writerow(
                     {'image': str(comp.image), 'id': comp.id, 'width': comp.width, 'height': comp.height,
@@ -63,66 +63,6 @@ def write_to_csv(id, components):
                      'orientation': round(comp.orientation, 4), 'density': round(float(q)/S**2, 4),
                      'isDarkOnLight': comp.isDarkOnLight, 'text': comp.isText})
             count += 1
-
-
-def preprocess(img):
-    SZ = 20
-    m = cv.moments(img)
-    if abs(m['mu02']) < 1e-2:
-        return img.copy()
-    skew = m['mu11'] / m['mu02']
-    M = np.float32([[1, skew, -0.5 * SZ * skew], [0, 1, 0]])
-    img = cv.warpAffine(img, M, (SZ, SZ), flags=cv.WARP_INVERSE_MAP | cv.INTER_LINEAR)
-    return img
-
-
-def write_train_hog_to_csv():
-    fieldnames = ['hog' + str(i) for i in range(0, n)]
-    fieldnames = ['image', 'id'] + fieldnames
-
-    with open('components_hog.csv', 'w') as f:
-        writer = csv.DictWriter(f, delimiter=',', fieldnames=fieldnames)
-        writer.writeheader()
-
-        for id in train_id:
-            print(id)
-            hog_features = pandas.read_csv('./hog/component_hog_IMG_' + id + '.csv').values
-            for i in range(hog_features.shape[0]):
-                row = {'image': id, 'id': i}
-
-                for j in range(0, n):
-                    row[fieldnames[j + 2]] = hog_features[i][j + 2]
-                writer.writerow(row)
-
-
-def extract_hog(path_dir):
-    hog = cv.HOGDescriptor((20, 20), (10, 10), (5, 5), (10, 10), 9, 1, -1, 0, 0.2, 1, 64, True)
-    list_hog = []
-    for i in range(0, np.size(path_dir)):
-        img = cv.imread(path_dir[i], 0)
-        imresize = preprocess(img)
-        ihog = hog.compute(imresize)
-        list_hog.append(ihog)
-    hog_features = np.squeeze(list_hog)
-    return hog_features
-
-
-def write_hog_to_csv(id):
-    comp_dir = sorted(glob.glob('/home/laneesra/CLionProjects/TextDetection/components/IMG_' + id + '/COMP_*.JPG'), key=get_num)
-    print(comp_dir)
-    hog = extract_hog(comp_dir)
-    fieldnames = ['hog' + str(i) for i in range(0, n)]
-    fieldnames = ['image', 'id'] + fieldnames
-
-    with open('hog/component_hog_IMG_' + id + '.csv', 'w') as f:
-        writer = csv.DictWriter(f, delimiter=',', fieldnames=fieldnames)
-        writer.writeheader()
-
-        for i in range(0, len(hog)):
-            row = {'image': id, 'id': i}
-            for j in range(0, n):
-                row[fieldnames[j + 2]] = hog[i][j]
-            writer.writerow(row)
 
 k = 64
 def extract_train_surf_to_csv():
@@ -487,29 +427,48 @@ def get_num_x(path):
     return int(path[75:-4])
 
 
-def train_catboost(train_features, target):
-    best_recall = 0
-    best_f1 = 0
-    best_n = 0
-    kf = KFold(n_splits=10, shuffle=False, random_state=1)
+def train_catboost():
+    TRAIN_COMP_FILE = './components.df'
+    TRAIN_SURF_FILE = './components_surf.df'
+    TRAIN_SIFT_FILE = './components_sift.df'
+    TRAIN_ORB_FILE = './components_orb.df'
 
-    for n in np.linspace(3, 300, 10):
-        model = CatBoostClassifier(iterations=int(n), depth=3, learning_rate=0.5, loss_function='Logloss', task_type='GPU')
-        #model.fit(train_features, target, cat_features=[0])
-        recall_scores = cross_val_score(model, train_features, target, cv=kf, scoring='recall')
-        recall = recall_scores.mean()
-        print recall
+    #TEST_FILE = './comp/component_IMG_1835.df'
+    CD_COMP_FILE = './components.cd'
+    CD_OTHER_FILE = './sift.cd'
+
+    #TRAIN_FILE = './components_surf.df'
+    #TEST_FILE = './comp/component_IMG_1835.df'
+    #CD_FILE = './sift.cd'
+
+    train_comp_pool = Pool(TRAIN_COMP_FILE, column_description=CD_COMP_FILE)
+    train_surf_pool = Pool(TRAIN_SURF_FILE, column_description=CD_OTHER_FILE)
+    train_sift_pool = Pool(TRAIN_SIFT_FILE, column_description=CD_OTHER_FILE)
+    train_orb_pool = Pool(TRAIN_ORB_FILE, column_description=CD_OTHER_FILE)
+
+    #eval_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    #test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    for train_pool, iters, filename in ((train_comp_pool, 845, 'comp'), (train_surf_pool, 313, 'surf'),
+                                        (train_sift_pool, 364, 'sift'), (train_orb_pool, 224, 'orb')):
+        model = CatBoostClassifier(depth=3, iterations=iters, eval_metric='F1', task_type='CPU')
+        model.fit(train_pool)
+        model.save_model(filename + '.model')
+
+
+        #preds_class = model.predict(test_pool)
+    # Get predicted probabilities for each class
+    #preds_proba = model.predict_proba(test_pool)
+    # Get predicted RawFormulaVal
+    #preds_raw = model.predict(test_pool, prediction_type='RawFormulaVal')
+    #print(preds_class)
+    #print(model.get_params())
+
+    '''print("Count of trees in model = {}".format(model.tree_count_))
         #preds_class = model.predict(test_features)
         #recall = recall_score(target, preds_class)
         #precision = precision_score(target, preds_class)
-        #f1 = f1_score(target, preds_class)
-        if (best_recall < recall):
-            best_recall = recall
-            best_n = n
-
-
-    print (best_f1, best_recall, best_n)
-    return best_f1, best_recall, best_n
+        #f1 = f1_score(target, preds_class)'''
 
 
 def predict_catboost(test_features, filename):
@@ -543,26 +502,37 @@ def write_preds_to_proto(components, preds):
 
 def write_train_to_csv():
     write_train_sift_to_csv()
-    #write_train_hog_to_csv()
-    #write_train_orb_to_csv()
+    write_train_orb_to_csv()
     write_train_surf_to_csv()
+    write_train_comp_to_csv()
 
 
 def write_test_to_csv(id, components):
     write_to_csv(id, components)
     write_sift_to_csv(id)
-    write_hog_to_csv(id)
     write_orb_to_csv(id)
     write_surf_to_csv(id)
 
 dirs = sorted(glob.glob('/home/laneesra/PycharmProjects/TextDetection/MSRA-TD500/train/catboost/IMG_*.JPG'), key=get_num_x)
 train_id = [dir[75:-4] for dir in dirs]
-
+train_catboost()
 
 #extract_train_surf_to_csv()
 #extract_train_sift_to_csv()
 #extract_train_orb_to_csv()
-#write_train_to_csv()
+#write_train_sift_to_csv()
+#write_train_orb_to_csv()
+#write_train_surf_to_csv()
+
+'''for id in train_id:
+    components = pbcomp.Components()
+    f = open("/home/laneesra/CLionProjects/TextDetection/protobins/component_IMG_" + id + ".bin", "rb")
+    components.ParseFromString(f.read())
+    f.close()
+    write_to_csv(id, components)
+
+write_train_to_csv()'''
+
 
 '''train_sift_features = pandas.read_csv('./components_sift.csv', index_col='id')
 train_hog_features = pandas.read_csv('./components_hog.csv', index_col='id')
@@ -571,29 +541,28 @@ train_surf_features = pandas.read_csv('./components_surf.csv', index_col='id')
 train_orb_features = pandas.read_csv('./components_orb.csv', index_col='id')
 
 train_target = train_comp_features['text'].values
-train_comp_features.drop('text', axis=1, inplace=True)
+train_comp_features.drop('text', axis=1, inplace=True)'''
 
-fit_catboost(train_comp_features, train_target, n=36, depth=2, lr=1, task='CPU', filename='comp_catboost.model')
-fit_catboost(train_sift_features, train_target, n=135, depth=3, lr=0.5, task='GPU', filename='sift_catboost.model')
-fit_catboost(train_surf_features, train_target, n=3, depth=2, lr=1, task='CPU', filename='surf_catboost.model')
-fit_catboost(train_orb_features, train_target, n=3, depth=2, lr=1, task='CPU', filename='orb_catboost.model')
-fit_catboost(train_hog_features, train_target, n=234, depth=3, lr=0.5, task='GPU', filename='hog_catboost.model')'''
+#fit_catboost(train_comp_features, train_target, n=36, depth=2, lr=1, task='CPU', filename='comp_catboost.model')
+#fit_catboost(train_sift_features, train_target, n=135, depth=3, lr=0.5, task='GPU', filename='sift_catboost.model')
+#fit_catboost(train_surf_features, train_target, n=3, depth=2, lr=1, task='CPU', filename='surf_catboost.model')
+#fit_catboost(train_orb_features, train_target, n=3, depth=2, lr=1, task='CPU', filename='orb_catboost.model')
+#fit_catboost(train_hog_features, train_target, n=234, depth=3, lr=0.5, task='GPU', filename='hog_catboost.model')'''
 
 #train_catboost(train_comp_features, train_target)
 #train_catboost(train_hog_features, train_target)
-#train_catboost(train_comp_features, train_target)
 #train_catboost(train_surf_features, train_target)
 #train_catboost(train_orb_features, train_target)
 
-id = '2220' #2075
+'''id = '1835' #2224 1866 1835 1709 0849 0021
 #train_dir = glob.glob('/home/laneesra/PycharmProjects/TextDetection/MSRA-TD500/test/IMG_' + id + '.JPG')
 components = pbcomp.Components()
 f = open("/home/laneesra/CLionProjects/TextDetection/protobins/component_IMG_" + id + ".bin", "rb")
 components.ParseFromString(f.read())
 f.close()
-write_test_to_csv(id, components)
+write_test_to_csv(id, components)'''
 
-test_sift_features = pandas.read_csv('./sift/component_sift_IMG_' + id + '.csv', index_col='id')
+'''test_sift_features = pandas.read_csv('./sift/component_sift_IMG_' + id + '.csv', index_col='id')
 test_orb_features = pandas.read_csv('./orb//component_orb_IMG_' + id + '.csv', index_col='id')
 test_surf_features = pandas.read_csv('./surf/component_surf_IMG_' + id + '.csv', index_col='id')
 test_hog_features = pandas.read_csv('./hog/component_hog_IMG_' + id + '.csv', index_col='id')
@@ -601,7 +570,10 @@ test_comp_features = pandas.read_csv('./comp/component_IMG_' + id + '.csv', inde
 test_target = test_comp_features['text'].values
 test_comp_features.drop('text', axis=1, inplace=True)
 
-sift_pred, sift_proba = predict_catboost(test_sift_features, 'sift_catboost.model')
+train_catboost(train_comp_features, train_target, test_comp_features)'''
+
+
+'''sift_pred, sift_proba = predict_catboost(test_sift_features, 'sift_catboost.model')
 orb_pred, orb_proba = predict_catboost(test_orb_features, 'orb_catboost.model')
 surf_pred, surf_proba = predict_catboost(test_surf_features, 'surf_catboost.model')
 hog_pred, hog_proba = predict_catboost(test_hog_features, 'hog_catboost.model')
@@ -611,30 +583,16 @@ zip_pred = [(sift_pred[i], hog_pred[i], comp_pred[i], surf_pred[i], orb_pred[i])
 proba = []
 preds = []
 for i in zip_pred:
-    print np.mean(i)
-    if np.mean(i) >= 0.5:
+    if np.mean(i) > 0.2:
         preds.append(1)
     else:
         preds.append(0)
 print preds
 
-for i in test_target:
-    if i:
-        i = 1
-    else:
-        i = 0
-
-print test_target
-print sift_pred
-print orb_pred
-print surf_pred
-print hog_pred
-print comp_pred
-#preds = comp_pred
 print(f1_score(test_target, preds))
 print(recall_score(test_target, preds))
 print(precision_score(test_target, preds))
-write_preds_to_proto(components, np.array(preds, dtype=int))
+write_preds_to_proto(components, np.array(preds, dtype=int))'''
 
 #print(surf_prec, surf_f1, surf_score, surf_n)
 #print(orb_prec, orb_f1, orb_score, orb_n)
