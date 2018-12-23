@@ -68,6 +68,8 @@ class Pair(object):
         self.letterB = letterB
 
     def is_valid(self):
+        self.letterA.comp.characteristic_scale = self.letterA.comp.minor_axis + self.letterA.comp.major_axis
+        self.letterB.comp.characteristic_scale = self.letterB.comp.minor_axis + self.letterB.comp.major_axis
         if self.letterB.comp.characteristic_scale and self.letterB.comp.mean:
             return 0.5 < self.letterA.comp.mean / self.letterB.comp.mean < 2.0 and \
             0.4 < self.letterA.comp.characteristic_scale / self.letterB.comp.characteristic_scale < 2.5 and \
@@ -111,8 +113,8 @@ def find_pairs(comp):
                     pair = Pair(comp, neigh)
                     if pair.is_valid():
                         chains_of_pairs.append(pair.set_to_chain())
-
-    print(len(chains_of_pairs))
+                    else:
+                        print(i, j)
     return chains_of_pairs
 
 
