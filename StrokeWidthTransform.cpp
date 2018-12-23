@@ -31,42 +31,24 @@ StrokeWidthTransform::StrokeWidthTransform(string filename) : filename(filename)
     result = Mat(height, width, CV_8UC1);
 }
 
-void StrokeWidthTransform::execute(bool dark_on_light) {
+void StrokeWidthTransform::execute(bool darkOnLight) {
     edgeDetection();
     gradient();
-    // TODO two-side pass for true and false
-    buildSWT(dark_on_light); // true if white text on dark background, else false
+    buildSWT(darkOnLight); // true if white text on dark background, else false
     medianFilter();
     normalizeImage(SWTMatrix, SWTMatrix_norm);
     convertScaleAbs(SWTMatrix_norm, result, 255, 0);
-    showAndSaveSWT();
+    showAndSaveSWT(darkOnLight);
 }
 
 void StrokeWidthTransform::edgeDetection() {
     cvtColor(image, gray, COLOR_BGR2GRAY);
     blur(gray, gray, Size(3, 3));
-
-/*    vector<uchar> array;
-    if (gray.isContinuous()) {
-        array.assign(gray.datastart, gray.dataend);
-    } else {
-        for (int i = 0; i < gray.rows; ++i) {
-            array.insert(array.end(), gray.ptr<uchar>(i), gray.ptr<uchar>(i) + gray.cols);
-        }
-    }
-    nth_element(array.begin(), array.begin() + array.max_size() / 2, array.end());
-    float median = array[array.size() / 2];
-    float sigma = 0.1;
-    edge_threshold_low = (int)max(0., (1.0 - sigma) * median);
-    edge_threshold_high = (int)min(0., (1.0 + sigma) * median);*/
-    int tresh = 0;
-    Mat dst;
-    threshold(gray, dst, tresh, 255, THRESH_BINARY + THRESH_OTSU);
-
-    Canny(dst, edge, edge_threshold_low, edge_threshold_high, 3);
+    Canny(gray, edge, edge_threshold_low, edge_threshold_high, 3);
     filename = filename.substr(filename.size() - 12);
     imwrite("../images/" + filename + "_Canny.jpg", edge);
-//    waitKey(0);
+   // imshow("edges", edge);
+   // waitKey(0);
 }
 
 
@@ -84,10 +66,14 @@ void StrokeWidthTransform::gradient() {
 }
 
 
-void StrokeWidthTransform::showAndSaveSWT() {
-   // imwrite("../images/" + filename + "_SWT.jpg", result);
+void StrokeWidthTransform::showAndSaveSWT(bool darkOnLight) {
+    if (darkOnLight) {
+        imwrite("../images/" + filename + "_SWT" + "_dark.jpg", result);
+    } else {
+        imwrite("../images/" + filename + "_SWT" + "_light.jpg", result);
+    }
    // imshow("SWT", result);
-   // waitKey(0);
+  //  waitKey(0);
 }
 
 

@@ -14,6 +14,7 @@
 #include <iostream>
 
 using namespace boost;
+float PI = 3.14159265359;
 
 
 ConnectedComponents::ConnectedComponents(string filename, Mat SWTMatrixDark, Mat SWTMatrixDarkNormU, Mat SWTMatrixLight, Mat SWTMatrixLightNormU, Mat image) : SWTMatrixDark(std::move(SWTMatrixDark)), SWTMatrixLight(std::move(SWTMatrixLight)), filename(std::move(filename)), image(std::move(image)) {
@@ -34,12 +35,13 @@ void ConnectedComponents::execute() {
 
     findComponentsBoost(false);
     firstStageFilter(false);
-    showAndSaveComponents();
     //markComponents();
-    computeCamshiftFeatures();
+    showAndSaveComponents();
+    computeFeatures();
     saveData();
 }
 
+/// Old and slow method for finding components
 /*
 void ConnectedComponents::findComponents() {
     queue<SWTPoint> q;
@@ -185,10 +187,20 @@ void ConnectedComponents::firstStageFilter(bool darkOnLight) {
   //  imshow("Dilation", morphImg);
    // waitKey(0);
 
+    if (darkOnLight) {
+        imwrite(string("../images/Dilation") + "_dark.JPG", morphImg);
+    } else {
+        imwrite(string("../images/Dilation") + "_light.JPG", morphImg);
+    }
     erode(morphImg, morphImg, element);
+    //imshow("Erosion", morphImg);
+    //waitKey(0);
 
-   // imshow("Erosion", morphImg);
-   // waitKey(0);
+    if (darkOnLight) {
+        imwrite(string("../images/Erosion") + "_dark.JPG", morphImg);
+    } else {
+        imwrite(string("../images/Erosion") + "_light.JPG", morphImg);
+    }
 
     for (int i = 0; i < components->mutable_components()->size(); i++) {
         improveComponentSWT(components->mutable_components(i), morphImg, darkOnLight);
@@ -255,48 +267,36 @@ void ConnectedComponents::markComponents() {
 void ConnectedComponents::showAndSaveComponents() {
     filename = filename.substr(filename.size() - 12, 8);
     int count = 0;
-
     for (auto comp : validComponents.components()) {
-        int curPixel = comp.minx();
-        Mat compImg = image(Rect(comp.minx(), comp.miny(), comp.width(), comp.height()));
+        Mat compImg = image(Rect(comp.miny(), comp.minx(), comp.height(), comp.width()));
         imwrite("../components/" + filename + "/COMP_" + to_string(count) + ".JPG", compImg);
-
-        while (curPixel < comp.maxx()) {
-            connectedComponentsDark.at<Vec3b>(comp.maxy(), curPixel) = Vec3b(0, 100, 255);
-            connectedComponentsDark.at<Vec3b>(comp.miny(), curPixel) = Vec3b(0, 100, 255);
-            connectedComponentsLight.at<Vec3b>(comp.maxy(), curPixel) = Vec3b(0, 100, 255);
-            connectedComponentsLight.at<Vec3b>(comp.miny(), curPixel) = Vec3b(0, 100, 255);
-
-            curPixel++;
+        Mat src;
+        if (comp.isdarkonlight()) {
+            src = connectedComponentsDark;
+        } else {
+            src = connectedComponentsLight;
         }
-
-        curPixel = comp.miny();
-        while (curPixel < comp.maxy()) {
-            connectedComponentsDark.at<Vec3b>(curPixel, comp.minx()) = Vec3b(0, 100, 255);
-            connectedComponentsDark.at<Vec3b>(curPixel, comp.maxx()) = Vec3b(0, 100, 255);
-            connectedComponentsLight.at<Vec3b>(curPixel, comp.minx()) = Vec3b(0, 100, 255);
-            connectedComponentsLight.at<Vec3b>(curPixel, comp.maxx()) = Vec3b(0, 100, 255);
-
-            curPixel++;
-        }
+        line(src, Point(comp.maxy(), comp.minx()), Point(comp.maxy(), comp.maxx()), Scalar(0, 191, 255), 2);
+        line(src, Point(comp.miny(), comp.minx()), Point(comp.miny(), comp.maxx()), Scalar(0, 191, 255), 2);
+        line(src, Point(comp.maxy(), comp.minx()), Point(comp.miny(), comp.minx()), Scalar(0, 191, 255), 2);
+        line(src, Point(comp.maxy(), comp.maxx()), Point(comp.miny(), comp.maxx()), Scalar(0, 191, 255), 2);
         count++;
     }
-    namedWindow("Connected components", WINDOW_NORMAL);
-    resizeWindow("Connected components", connectedComponentsDark.size[0]*4/5, connectedComponentsDark.size[1]*4/5);
-
-    imshow("Connected components", connectedComponentsDark);
+ //   namedWindow("Connected components", WINDOW_NORMAL);
+ //   resizeWindow("Connected components", connectedComponentsDark.size[0]*4/5, connectedComponentsDark.size[1]*4/5);
+  //  imshow("Connected components", connectedComponentsDark);
     imwrite("../images/catboost/" + filename + "_connectedComponentsDark.jpg", connectedComponentsDark);
-    waitKey(0);
+//    waitKey(0);
 
-    // imshow("Connected components", connectedComponentsLight);
+  //  imshow("Connected components", connectedComponentsLight);
     imwrite("../images/catboost/" + filename + "_connectedComponentsLight.jpg", connectedComponentsLight);
     // waitKey(0);
 }
 
 
 void ConnectedComponents::setValidComponent(Component* comp, int maxX, int minX, int maxY, int minY) {
-    float height = (float)maxX - minX + 1;
-    float width = (float)maxY - minY + 1;
+    float height = (float)maxY - minY + 1;
+    float width = (float)maxX - minX + 1;
     auto q = (float)comp->points().size();
 
     float mean = 0;
@@ -333,10 +333,10 @@ void ConnectedComponents::setValidComponent(Component* comp, int maxX, int minX,
         valComp->set_ar(AR);
         valComp->set_or_(OR);
         valComp->set_sd(SD);
-        valComp->set_maxx(maxY);
-        valComp->set_minx(minY);
-        valComp->set_maxy(maxX);
-        valComp->set_miny(minX);
+        valComp->set_maxx(maxX);
+        valComp->set_minx(minX);
+        valComp->set_maxy(maxY);
+        valComp->set_miny(minY);
     }
 }
 
@@ -354,7 +354,7 @@ void ConnectedComponents::improveComponentSWT(Component* comp, Mat morphImg, boo
             SWT->at<Vec3b>(p.x(), p.y()) = Vec3b(255, 255, 255);
         } else if (p.x() > 0 && p.y() > 0 && p.y() < morphImg.size[1] && p.x() < morphImg.size[0]) {
             validPoints.emplace_back(p);
-            SWT->at<Vec3b>(p.x(), p.y()) = Vec3b(0, 191, 255);
+            SWT->at<Vec3b>(p.x(), p.y()) = Vec3b(0, 0, 0);
         }
     }
     comp->clear_points();
@@ -369,17 +369,17 @@ void ConnectedComponents::improveComponentSWT(Component* comp, Mat morphImg, boo
 }
 
 
-void ConnectedComponents::computeCamshiftFeatures() {
+void ConnectedComponents::computeFeatures() {
+    /// find text orientation
     int edge_threshold_low = 80;
     int edge_threshold_high = edge_threshold_low * 2;
-    int trash = 0;
     Mat angles = Mat(image.size[0], image.size[1], CV_32F, Scalar(0));
     Mat gray, edge;
     cvtColor(image, gray, COLOR_BGR2GRAY);
     blur(gray, gray, Size(3, 3));
-    Mat dst, cdst;
-    threshold(gray, dst, trash, 255, THRESH_BINARY + THRESH_OTSU);
-    Canny(dst, edge, edge_threshold_low, edge_threshold_high, 3);
+    Mat cdst;
+    Canny(gray, edge, edge_threshold_low, edge_threshold_high, 3);
+
     cvtColor(edge, cdst, COLOR_GRAY2BGR);
     vector<Vec4i> lines;
     HoughLinesP(edge, lines, 1, CV_PI / 180, 50, 10, 100);
@@ -388,8 +388,8 @@ void ConnectedComponents::computeCamshiftFeatures() {
         Point p1, p2;
         p1 = Point(l[0], l[1]);
         p2 = Point(l[2], l[3]);
-        line(cdst, p1, p2, Scalar(0, 0, 255), 3, 2);
-        float angle = roundf(atan2(p1.y - p2.y, p1.x - p2.x) * 100) / 100;
+        line(cdst, p1, p2, Scalar(0, 191, 255), 3, 1);
+        float angle = roundf((atan2(p1.x - p2.x, p1.y - p2.y) + PI / 2) * 100) / 100 ;
         LineIterator it(angles, p1, p2, 8);
         LineIterator it2 = it;
 
@@ -406,42 +406,47 @@ void ConnectedComponents::computeCamshiftFeatures() {
 
     imshow("lines", cdst);
     waitKey(0);
+    imwrite("../images/" + filename + "_lines.jpg", cdst);
+
+
+    /// set features
+    Mat rotComps;
+    image.copyTo(rotComps);
     for (int i = 0; i < validComponents.components().size(); i++) {
         auto c = validComponents.mutable_components(i);
         c->set_image(stoi(filename.substr(4, 4)));
         c->set_id(i);
-        float orientation = 0;
-        float sumY = 0, sumX = 0;
+        vector<float> orients;
+        float orientation = 0, centerY = 0, centerX = 0;
+        int count = 0;
+        //TODO add hashmap
         for (auto p : c->points()) {
-            sumY += p.y();
-            sumX += p.x();
+            centerY += p.y();
+            centerX += p.x();
             if (angles.at<float>(p.x(), p.y()) != 0) {
-                if (orientation != 0) {
-                    orientation += angles.at<float>(p.x(), p.y());
-                    orientation /= 2;
-                } else {
-                    orientation = angles.at<float>(p.x(), p.y());
+                if (find(orients.begin(), orients.end(), angles.at<float>(p.x(), p.y())) == orients.end()) {
+                    count++;
                 }
+                orients.emplace_back(angles.at<float>(p.x(), p.y()));
             }
         }
-        sumY /= c->points().size();
-        sumX /= c->points().size();
+        sort(orients.begin(), orients.end());
+        int len = orients.size();
+        if (len > 0) {
+            orientation = orients[len / 2];
+        }
+        centerY /= c->points().size();
+        centerX /= c->points().size();
         c->set_orientation(orientation);
-        c->set_center_x(sumX);
-        c->set_center_y(sumY);
-
-        // TODO get rotated bounding box
-
-
+        c->set_center_x(centerX);
+        c->set_center_y(centerY);
+        c->set_minor_axis(c->width());
+        c->set_major_axis(c->height());
     }
 
-
-
- //   imshow("Camshift", camshift);
- //   imwrite("../images/catboost/" + filename + "_camshift.jpg", camshift);
-  //  waitKey(0);
+ //   imshow("rotated components", rotComps);
+//    waitKey(0);
 }
-
 
 void ConnectedComponents::saveData() {
     const string result_file = "../protobins/component_" + filename + ".bin";

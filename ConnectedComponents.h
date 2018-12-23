@@ -31,7 +31,7 @@ public:
     void findComponentsBoost(bool darkOnLight);
     void showAndSaveComponents();
     void firstStageFilter(bool darkOnLight);
-    void computeCamshiftFeatures();
+    void computeFeatures();
     void setValidComponent(Component* comp, int maxX, int minX, int maxY, int minY);
     void saveData();
     void markComponents();

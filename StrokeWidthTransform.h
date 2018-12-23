@@ -49,7 +49,7 @@ public:
     void edgeDetection();
     void gradient();
     void buildSWT(bool dark_on_light);
-    void showAndSaveSWT();
+    void showAndSaveSWT(bool dark_on_light);
     void medianFilter();
     void normalizeImage(Mat input, Mat output);
 };
