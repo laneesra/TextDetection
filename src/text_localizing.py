@@ -39,9 +39,9 @@ def text_localizing(id):
                     box = np.int0(box)
                     cv.drawContours(img, [box], 0, (0, 191, 255), 2)
 
-    cv.imwrite('detected_text' + id + '.jpg', img)
-    cv.namedWindow('chains', cv.WINDOW_NORMAL)
-    cv.resizeWindow('chains', 1000, 1000)
-    cv.imshow('chains', img)
+    cv.imwrite('../result/detected_text' + id + '.jpg', img)
+    cv.namedWindow('result', cv.WINDOW_NORMAL)
+    cv.resizeWindow('result', 1000, 1000)
+    cv.imshow('result', img)
     cv.waitKey()
 
