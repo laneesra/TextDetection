@@ -18,74 +18,23 @@ float PI = 3.14159265359;
 
 
 ConnectedComponents::ConnectedComponents(string filename, Mat SWTMatrixDark, Mat SWTMatrixDarkNormU, Mat SWTMatrixLight, Mat SWTMatrixLightNormU, Mat image) : SWTMatrixDark(std::move(SWTMatrixDark)), SWTMatrixLight(std::move(SWTMatrixLight)), filename(std::move(filename)), image(std::move(image)) {
-    //enqueued = Mat(SWTMatrix.size[0], SWTMatrix.size[1], CV_8UC1, Scalar(0));
-    //num_of_component = Mat(SWTMatrix.size[0], SWTMatrix.size[1], CV_32FC1, Scalar(-1));
-    connectedComponentsDark = Mat(image.size[0], image.size[1], CV_8UC3);
-    connectedComponentsLight = Mat(image.size[0], image.size[1], CV_8UC3);
-
     cvtColor(SWTMatrixDarkNormU, connectedComponentsDark, COLOR_GRAY2BGR);
     cvtColor(SWTMatrixLightNormU, connectedComponentsLight, COLOR_GRAY2BGR);
 }
 
 
-void ConnectedComponents::execute() {
-    //findComponents();
+void ConnectedComponents::execute(Mat edge) {
     findComponentsBoost(true);
     firstStageFilter(true);
 
     findComponentsBoost(false);
     firstStageFilter(false);
     //markComponents();
-    showAndSaveComponents();
-    computeFeatures();
+    //showAndSaveComponents();
+    computeFeatures(edge);
     saveData();
 }
 
-/// Old and slow method for finding components
-/*
-void ConnectedComponents::findComponents() {
-    queue<SWTPoint> q;
-    for (int row = 0; row < SWTMatrix.size[0]; row++) {
-        for (int col = 0; col < SWTMatrix.size[1]; col++) {
-            if (enqueued.at<uchar>(row, col) == 0) {
-                q.push(SWTPoint(row, col, num_of_component.at<float>(row, col)));
-                enqueued.at<uchar>(row, col) = 1;
-                while (!q.empty()) {
-                    SWTPoint pixel = q.back();
-                    q.pop();
-                    auto swt = SWTMatrix.at<float>(pixel.x, pixel.y);
-                    SWTPoint neighbors[] = {SWTPoint(pixel.x, pixel.y - 1), SWTPoint(pixel.x - 1, pixel.y),
-                                            SWTPoint(pixel.x, pixel.y + 1), SWTPoint(pixel.x + 1, pixel.y)};
-                    enqueued.at<uchar>(pixel.x, pixel.y) = 1;
-
-                    for (auto &neigh : neighbors) {
-                        if (0 <= neigh.x && neigh.x < SWTMatrix.size[0] && 0 <= neigh.y && neigh.y < SWTMatrix.size[1]) {
-                            auto neigh_swt = SWTMatrix.at<float>(neigh.x, neigh.y);
-
-                            if (neigh_swt > 0 && swt > 0 && (swt / neigh_swt < 3 || neigh_swt / swt < 3)) {
-                                if (num_of_component.at<float>(neigh.x, neigh.y) < 0 && num_of_component.at<float>(pixel.x, pixel.y) < 0) {
-                                    vector<SWTPoint> points;
-                                    points.emplace_back(neigh.x, neigh.y, num_of_component.at<float>(neigh.x, neigh.y));
-                                    points.emplace_back(pixel.x, pixel.y, num_of_component.at<float>(pixel.x, pixel.y));
-                                    num_of_component.at<float>(neigh.x, neigh.y) = components.size();
-                                    num_of_component.at<float>(pixel.x, pixel.y) = components.size();
-                                    components.emplace_back(points);
-                                } else if (num_of_component.at<float>(pixel.x, pixel.y) < 0) {
-                                    components[(int)num_of_component.at<float>(neigh.x, neigh.y)].points.emplace_back(pixel.x, pixel.y, num_of_component.at<float>(pixel.x, pixel.y));
-                                    num_of_component.at<float>(pixel.x, pixel.y) = num_of_component.at<float>(neigh.x, neigh.y);
-                                } else {
-                                    components[(int)num_of_component.at<float>(pixel.x, pixel.y)].points.emplace_back(neigh.x, neigh.y, num_of_component.at<float>(neigh.x, neigh.y));
-                                    num_of_component.at<float>(neigh.x, neigh.y) = num_of_component.at<float>(pixel.x, pixel.y);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-*/
 
 void ConnectedComponents::findComponentsBoost(bool darkOnLight) {
     boost::unordered_map<int, int> map;
@@ -154,7 +103,6 @@ void ConnectedComponents::findComponentsBoost(bool darkOnLight) {
     }
 
     for (int j = 0; j < num_vertices; j++) {
-        //  components[c[j]].points.emplace_back(reverse_map[j]);
         Component* comp = components->mutable_components(c[j]);
         auto points = comp->mutable_points();
         auto point = points->Add();
@@ -184,24 +132,7 @@ void ConnectedComponents::firstStageFilter(bool darkOnLight) {
     }
 
     dilate(src, morphImg, element);
-  //  imshow("Dilation", morphImg);
-   // waitKey(0);
-
-    if (darkOnLight) {
-        imwrite(string("../images/Dilation") + "_dark.JPG", morphImg);
-    } else {
-        imwrite(string("../images/Dilation") + "_light.JPG", morphImg);
-    }
     erode(morphImg, morphImg, element);
-    //imshow("Erosion", morphImg);
-    //waitKey(0);
-
-    if (darkOnLight) {
-        imwrite(string("../images/Erosion") + "_dark.JPG", morphImg);
-    } else {
-        imwrite(string("../images/Erosion") + "_light.JPG", morphImg);
-    }
-
     for (int i = 0; i < components->mutable_components()->size(); i++) {
         improveComponentSWT(components->mutable_components(i), morphImg, darkOnLight);
 
@@ -215,7 +146,6 @@ void ConnectedComponents::firstStageFilter(bool darkOnLight) {
             minY = min(minY, pixel.y());
             minX = min(minX, pixel.x());
         }
-
 
         if (maxY != minY && maxX != minX) {
             setValidComponent(components->mutable_components(i), maxX, minX, maxY, minY);
@@ -284,12 +214,12 @@ void ConnectedComponents::showAndSaveComponents() {
     }
  //   namedWindow("Connected components", WINDOW_NORMAL);
  //   resizeWindow("Connected components", connectedComponentsDark.size[0]*4/5, connectedComponentsDark.size[1]*4/5);
-  //  imshow("Connected components", connectedComponentsDark);
-    imwrite("../images/catboost/" + filename + "_connectedComponentsDark.jpg", connectedComponentsDark);
-//    waitKey(0);
+    imshow("Connected components", connectedComponentsDark);
+    imwrite("../images/ + filename + "_connectedComponentsDark.jpg", connectedComponentsDark);
+    waitKey(0);
 
   //  imshow("Connected components", connectedComponentsLight);
-    imwrite("../images/catboost/" + filename + "_connectedComponentsLight.jpg", connectedComponentsLight);
+    imwrite("../images/" + filename + "_connectedComponentsLight.jpg", connectedComponentsLight);
     // waitKey(0);
 }
 
@@ -351,10 +281,10 @@ void ConnectedComponents::improveComponentSWT(Component* comp, Mat morphImg, boo
     for (auto p : comp->points()) {
         if (p.x() > 0 && p.y() > 0 && p.y() < morphImg.size[1] && p.x() < morphImg.size[0] &&
             morphImg.at<Vec3b>(p.x(), p.y()) == Vec3b(255, 255, 255)) {
-            SWT->at<Vec3b>(p.x(), p.y()) = Vec3b(255, 255, 255);
+     //       SWT->at<Vec3b>(p.x(), p.y()) = Vec3b(255, 255, 255);
         } else if (p.x() > 0 && p.y() > 0 && p.y() < morphImg.size[1] && p.x() < morphImg.size[0]) {
             validPoints.emplace_back(p);
-            SWT->at<Vec3b>(p.x(), p.y()) = Vec3b(0, 0, 0);
+     //       SWT->at<Vec3b>(p.x(), p.y()) = Vec3b(0, 0, 0);
         }
     }
     comp->clear_points();
@@ -369,17 +299,10 @@ void ConnectedComponents::improveComponentSWT(Component* comp, Mat morphImg, boo
 }
 
 
-void ConnectedComponents::computeFeatures() {
+void ConnectedComponents::computeFeatures(Mat edge) {
     /// find text orientation
-    int edge_threshold_low = 80;
-    int edge_threshold_high = edge_threshold_low * 2;
     Mat angles = Mat(image.size[0], image.size[1], CV_32F, Scalar(0));
-    Mat gray, edge;
-    cvtColor(image, gray, COLOR_BGR2GRAY);
-    blur(gray, gray, Size(3, 3));
     Mat cdst;
-    Canny(gray, edge, edge_threshold_low, edge_threshold_high, 3);
-
     cvtColor(edge, cdst, COLOR_GRAY2BGR);
     vector<Vec4i> lines;
     HoughLinesP(edge, lines, 1, CV_PI / 180, 50, 10, 100);
@@ -403,11 +326,6 @@ void ConnectedComponents::computeFeatures() {
             }
         }
     }
-
-    imshow("lines", cdst);
-    waitKey(0);
-    imwrite("../images/" + filename + "_lines.jpg", cdst);
-
 
     /// set features
     Mat rotComps;
@@ -443,9 +361,6 @@ void ConnectedComponents::computeFeatures() {
         c->set_minor_axis(c->width());
         c->set_major_axis(c->height());
     }
-
- //   imshow("rotated components", rotComps);
-//    waitKey(0);
 }
 
 void ConnectedComponents::saveData() {

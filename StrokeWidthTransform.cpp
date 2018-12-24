@@ -38,7 +38,7 @@ void StrokeWidthTransform::execute(bool darkOnLight) {
     medianFilter();
     normalizeImage(SWTMatrix, SWTMatrix_norm);
     convertScaleAbs(SWTMatrix_norm, result, 255, 0);
-    showAndSaveSWT(darkOnLight);
+  //  showAndSaveSWT(darkOnLight);
 }
 
 void StrokeWidthTransform::edgeDetection() {
@@ -46,7 +46,8 @@ void StrokeWidthTransform::edgeDetection() {
     blur(gray, gray, Size(3, 3));
     Canny(gray, edge, edge_threshold_low, edge_threshold_high, 3);
     filename = filename.substr(filename.size() - 12);
-    imwrite("../images/" + filename + "_Canny.jpg", edge);
+    // imwrite("../images/" + filename + "_Canny.jpg", edge);
+    // imwrite("../images/" + filename + "_Canny.jpg", edge);
    // imshow("edges", edge);
    // waitKey(0);
 }

@@ -26,12 +26,12 @@ public:
     Mat image;
 
     ConnectedComponents(string filename, Mat SWTMatrixDark, Mat SWTMatrixDarkNormU, Mat SWTMatrixLight, Mat SWTMatrixLightNormU, Mat image);
-    void execute();
+    void execute(Mat edge);
     void findComponents();
     void findComponentsBoost(bool darkOnLight);
     void showAndSaveComponents();
     void firstStageFilter(bool darkOnLight);
-    void computeFeatures();
+    void computeFeatures(Mat edge);
     void setValidComponent(Component* comp, int maxX, int minX, int maxY, int minY);
     void saveData();
     void markComponents();
