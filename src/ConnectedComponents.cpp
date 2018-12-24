@@ -214,12 +214,12 @@ void ConnectedComponents::showAndSaveComponents() {
     }
  //   namedWindow("Connected components", WINDOW_NORMAL);
  //   resizeWindow("Connected components", connectedComponentsDark.size[0]*4/5, connectedComponentsDark.size[1]*4/5);
-    imshow("Connected components", connectedComponentsDark);
-    imwrite("../images/ + filename + "_connectedComponentsDark.jpg", connectedComponentsDark);
-    waitKey(0);
+    //imshow("Connected components", connectedComponentsDark);
+    //imwrite("../images/" + filename + "_connectedComponentsDark.jpg", connectedComponentsDark);
+   // waitKey(0);
 
   //  imshow("Connected components", connectedComponentsLight);
-    imwrite("../images/" + filename + "_connectedComponentsLight.jpg", connectedComponentsLight);
+    //imwrite("../images/" + filename + "_connectedComponentsLight.jpg", connectedComponentsLight);
     // waitKey(0);
 }
 
@@ -332,7 +332,7 @@ void ConnectedComponents::computeFeatures(Mat edge) {
     image.copyTo(rotComps);
     for (int i = 0; i < validComponents.components().size(); i++) {
         auto c = validComponents.mutable_components(i);
-        c->set_image(stoi(filename.substr(4, 4)));
+        c->set_image(0);
         c->set_id(i);
         vector<float> orients;
         float orientation = 0, centerY = 0, centerX = 0;
@@ -364,7 +364,7 @@ void ConnectedComponents::computeFeatures(Mat edge) {
 }
 
 void ConnectedComponents::saveData() {
-    const string result_file = "../protobins/component_" + filename + ".bin";
+    const string result_file = "../protobins/components.bin";
     fstream output(result_file, ios::out | ios::binary);
     if (!validComponents.SerializeToOstream(&output)) {
         cerr << "Failed to serialize data" << endl;

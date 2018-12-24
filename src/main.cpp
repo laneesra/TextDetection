@@ -12,9 +12,9 @@ using namespace std;
 int main(int argc, const char** argv) {
     vector<string> fn;
     string filename;
+    double duration;
     cin >> filename;
     clock_t start;
-    double duration;
     start = clock();
     cout << endl << filename << endl;
     StrokeWidthTransform swtDark(filename);
