@@ -18,10 +18,10 @@
 using namespace cv;
 using namespace std;
 
-StrokeWidthTransform::StrokeWidthTransform(string filename, string format) : filename(filename) {
-    image = imread("../images/original/" + filename + format);
-    int height = image.size[0];
+StrokeWidthTransform::StrokeWidthTransform(string filename) : filename(filename) {
+    image = imread(filename);
     int width = image.size[1];
+    int height = image.size[0];
     gray = Mat(height, width, CV_8UC1);
     blurred = Mat(height, width, CV_32FC1);
     gradientY = Mat(height, width, CV_32FC1);
@@ -31,21 +31,25 @@ StrokeWidthTransform::StrokeWidthTransform(string filename, string format) : fil
     result = Mat(height, width, CV_8UC1);
 }
 
-void StrokeWidthTransform::execute() {
+void StrokeWidthTransform::execute(bool darkOnLight) {
     edgeDetection();
     gradient();
-    // TODO two-side pass for true and false
-    buildSWT(true); // true if white text on dark background, else false
+    buildSWT(darkOnLight); // true if white text on dark background, else false
     medianFilter();
     normalizeImage(SWTMatrix, SWTMatrix_norm);
     convertScaleAbs(SWTMatrix_norm, result, 255, 0);
-    //showAndSaveSWT();
+  //  showAndSaveSWT(darkOnLight);
 }
 
 void StrokeWidthTransform::edgeDetection() {
     cvtColor(image, gray, COLOR_BGR2GRAY);
+    blur(gray, gray, Size(3, 3));
     Canny(gray, edge, edge_threshold_low, edge_threshold_high, 3);
-//    imshow("Edge map : Canny default", edge);
+    filename = filename.substr(filename.size() - 12);
+    // imwrite("../images/" + filename + "_Canny.jpg", edge);
+    // imwrite("../images/" + filename + "_Canny.jpg", edge);
+   // imshow("edges", edge);
+   // waitKey(0);
 }
 
 
@@ -54,19 +58,23 @@ void StrokeWidthTransform::gradient() {
     blur(gray, blurred, Size(5, 5));
     Scharr(gray, gradientX, CV_32F, 1, 0);
     Scharr(gray, gradientY, CV_32F, 0, 1);
-    blur(gradientX, gradientX, Size(3, 3));
-    blur(gradientY, gradientY, Size(3, 3));
-    imwrite("../images/" + filename + "_gradientX.jpg", gradientX);
-    imwrite("../images/" + filename + "_gradientY.jpg", gradientY);
-//    imshow("Gradient X : Scharr", gradientX);
-//    imshow("Gradient Y : Scharr", gradientY);
+    blur(gradientX, gradientX, Size(5, 5));
+    blur(gradientY, gradientY, Size(5, 5));
+ //   imwrite("../images/" + filename + "_gradientX.jpg", gradientX);
+ //   imwrite("../images/" + filename + "_gradientY.jpg", gradientY);
+ //   imshow("Gradient X : Scharr", gradientX);
+ //   imshow("Gradient Y : Scharr", gradientY);
 }
 
 
-void StrokeWidthTransform::showAndSaveSWT() {
-    imwrite("../images/" + filename + "_SWT.jpg", result);
-    imshow("SWT", result);
-    waitKey(0);
+void StrokeWidthTransform::showAndSaveSWT(bool darkOnLight) {
+    if (darkOnLight) {
+        imwrite("../images/" + filename + "_SWT" + "_dark.jpg", result);
+    } else {
+        imwrite("../images/" + filename + "_SWT" + "_light.jpg", result);
+    }
+   // imshow("SWT", result);
+  //  waitKey(0);
 }
 
 

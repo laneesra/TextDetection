@@ -13,8 +13,8 @@ using namespace std;
 using namespace cv;
 
 struct SWTPoint {
-    int x;
     int y;
+    int x;
     float SWT;
 
     SWTPoint() = default;
@@ -39,17 +39,17 @@ struct Ray {
 class StrokeWidthTransform {
 public:
     string filename;
-    int edge_threshold_low = 175;
-    int edge_threshold_high = 320;
+    int edge_threshold_low = 80;
+    int edge_threshold_high = edge_threshold_low * 2;
     Mat image, gray, blurred, edge, gradientX, gradientY, SWTMatrix, SWTMatrix_norm, result;
     vector<Ray> rays;
 
-    StrokeWidthTransform(String filename, String format);
-    void execute();
+    StrokeWidthTransform(String filename);
+    void execute(bool dark_on_light);
     void edgeDetection();
     void gradient();
     void buildSWT(bool dark_on_light);
-    void showAndSaveSWT();
+    void showAndSaveSWT(bool dark_on_light);
     void medianFilter();
     void normalizeImage(Mat input, Mat output);
 };

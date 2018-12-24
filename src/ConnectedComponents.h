@@ -8,28 +8,31 @@
 
 #include "StrokeWidthTransform.h"
 #include "Components.pb.h"
+#include <opencv2/opencv.hpp>
+
 
 class ConnectedComponents {
 public:
     string filename;
-    Components components;
-    Components valid_components;
-   // Mat enqueued;
-   // Mat num_of_component;
-    Mat SWTMatrix;
-    Mat connected_components;
-    Mat camshift;
+    Components componentsDark;
+    Components componentsLight;
+    Components validComponents;
+    Mat SWTMatrixDark;
+    Mat SWTMatrixLight;
+    Mat connectedComponentsDark;
+    Mat connectedComponentsLight;
     Mat image;
 
-    ConnectedComponents(string filename, Mat SWTMatrix, Mat SWTMatrixNormU, Mat image);
-    void execute();
-    void findComponents();
-    void findComponentsBoost();
+    ConnectedComponents(string filename, Mat SWTMatrixDark, Mat SWTMatrixDarkNormU, Mat SWTMatrixLight, Mat SWTMatrixLightNormU, Mat image);
+    void execute(Mat edge);
+    void findComponentsBoost(bool darkOnLight);
     void showAndSaveComponents();
-    void firstStageFilter();
-    void computeCamshiftFeatures();
-    void setValidComponent(Component comp, int maxX, int minX, int maxY, int minY);
+    void firstStageFilter(bool darkOnLight);
+    void computeFeatures(Mat edge);
+    void setValidComponent(Component* comp, int maxX, int minX, int maxY, int minY);
     void saveData();
+    void markComponents();
+    void improveComponentSWT(Component* comp, Mat morphImg, bool darkOnLight);
 };
 
 

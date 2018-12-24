@@ -10,11 +10,22 @@ using namespace cv;
 using namespace std;
 
 int main(int argc, const char** argv) {
-    string filename = "Pict0021";
-    string format = ".jpg";
-    StrokeWidthTransform swt(filename, format);
-    swt.execute();
+    vector<string> fn;
+    string filename;
+    double duration;
+    cin >> filename;
+    clock_t start;
+    start = clock();
+    cout << endl << filename << endl;
+    StrokeWidthTransform swtDark(filename);
+    swtDark.execute(true);
+    StrokeWidthTransform swtLight(filename);
+    swtLight.execute(false);
+    ConnectedComponents cc = ConnectedComponents(filename, swtDark.SWTMatrix, swtDark.result,
+                                                 swtLight.SWTMatrix,
+                                                 swtLight.result, swtDark.image);
+    cc.execute(swtDark.edge);
 
-    ConnectedComponents cc = ConnectedComponents(filename, swt.SWTMatrix, swt.result, swt.image);
-    cc.execute();
+    duration = (clock() - start) / (double) CLOCKS_PER_SEC;
+    cout << duration;
 }

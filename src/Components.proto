@@ -21,12 +21,20 @@ message Component {
     float WV = 10; // width variation range [0, 1]
     float AR = 11; // aspect ratio range [0.1, 1]
     float OR = 12; // occupation ratio range [0.1, 1]
-    float characteristic_scale = 13;
-    float orientation = 14;
-    float center_x = 15;
-    float center_y = 16;
+    float major_axis = 13;
+    float minor_axis = 14;
+    float characteristic_scale = 15;
+    float orientation = 16;
+    float center_x = 17;
+    float center_y = 18;
+    int32 image = 19;
+    int32 id = 20;
+    bool isText = 21; // 1 - is text symbol; 0 - is not the text symbol
+    bool isDarkOnLight = 22;
+    bool pred = 23;
 }
 
 message Components {
+
     repeated Component components = 1;
 }
