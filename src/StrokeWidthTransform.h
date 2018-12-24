@@ -13,8 +13,8 @@ using namespace std;
 using namespace cv;
 
 struct SWTPoint {
-    int x;
     int y;
+    int x;
     float SWT;
 
     SWTPoint() = default;

@@ -17,8 +17,6 @@ public:
     Components componentsDark;
     Components componentsLight;
     Components validComponents;
-   // Mat enqueued;
-   // Mat num_of_component;
     Mat SWTMatrixDark;
     Mat SWTMatrixLight;
     Mat connectedComponentsDark;
@@ -27,7 +25,6 @@ public:
 
     ConnectedComponents(string filename, Mat SWTMatrixDark, Mat SWTMatrixDarkNormU, Mat SWTMatrixLight, Mat SWTMatrixLightNormU, Mat image);
     void execute(Mat edge);
-    void findComponents();
     void findComponentsBoost(bool darkOnLight);
     void showAndSaveComponents();
     void firstStageFilter(bool darkOnLight);
