@@ -3,7 +3,7 @@ import Components_pb2 as pbcomp
 import numpy as np
 
 import components_chain as chains
-from TextDetection import chain_analysis
+import chain_analysis
 
 
 def text_localizing(id):
