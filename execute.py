@@ -1,6 +1,9 @@
-import feature_extraction, clf, text_localizing
+import feature_extraction
+import clf
+import text_localizing
 
-id = '0469'
+
+id = input()
 feature_extraction.run(id)
 clf.predict_catboost(id)
 text_localizing.text_localizing(id)
