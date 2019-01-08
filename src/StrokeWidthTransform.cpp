@@ -31,6 +31,7 @@ StrokeWidthTransform::StrokeWidthTransform(string filename) : filename(filename)
     result = Mat(height, width, CV_8UC1);
 }
 
+
 void StrokeWidthTransform::execute(bool darkOnLight) {
     edgeDetection();
     gradient();
@@ -177,7 +178,7 @@ void StrokeWidthTransform::buildSWT(bool dark_on_light) {
 }
 
 
-void StrokeWidthTransform::normalizeImage (Mat input, Mat output) {
+void StrokeWidthTransform::normalizeImage(Mat& input, Mat& output) {
     float maxVal = 0;
     float minVal = 255;
     for (int row = 0; row < input.rows; row++) {

@@ -10,7 +10,6 @@ using namespace cv;
 using namespace std;
 
 int main(int argc, const char** argv) {
-    vector<string> fn;
     string filename;
     double duration;
     cin >> filename;

@@ -44,14 +44,14 @@ public:
     Mat image, gray, blurred, edge, gradientX, gradientY, SWTMatrix, SWTMatrix_norm, result;
     vector<Ray> rays;
 
-    StrokeWidthTransform(String filename);
+    StrokeWidthTransform(string filename);
     void execute(bool dark_on_light);
     void edgeDetection();
     void gradient();
     void buildSWT(bool dark_on_light);
     void showAndSaveSWT(bool dark_on_light);
     void medianFilter();
-    void normalizeImage(Mat input, Mat output);
+    void normalizeImage(Mat& input, Mat& output);
 };
 
 
