@@ -40,8 +40,8 @@ void StrokeWidthTransform::execute(bool darkOnLight) {
     medianFilter();
     normalizeImage(SWTMatrix, SWTMatrix_norm);
     convertScaleAbs(SWTMatrix_norm, result, 255, 0);
-  //  showAndSaveSWT(darkOnLight);
-  cout << "end" << endl;
+   // showAndSaveSWT(darkOnLight);
+    cout << "end" << endl;
 }
 
 void StrokeWidthTransform::edgeDetection() {
@@ -76,8 +76,8 @@ void StrokeWidthTransform::showAndSaveSWT(bool darkOnLight) {
     } else {
         imwrite("../images/" + filename + "_SWT" + "_light.jpg", result);
     }
-   // imshow("SWT", result);
-  //  waitKey(0);
+    imshow("SWT", result);
+    waitKey(0);
 }
 
 

@@ -26,11 +26,12 @@ ConnectedComponents::ConnectedComponents(string filename, Mat& SWTMatrixDark, Ma
 
 
 void ConnectedComponents::execute(Mat edge) {
-    async(std::launch::async, &ConnectedComponents::findComponentsBoost, this, true);
+    auto func = async(launch::async, &ConnectedComponents::findComponentsBoost, this, true);
     findComponentsBoost(false);
-
-    firstStageFilter(true);
     firstStageFilter(false);
+
+    func.get();
+    firstStageFilter(true);
     filename = filename.substr(filename.size() - 12, 8);
 
     //markComponents();
@@ -120,7 +121,7 @@ void ConnectedComponents::findComponentsBoost(bool darkOnLight) {
             comp->set_isdarkonlight(0);
         }
     }
-
+    cout << "end" << endl;
 }
 
 

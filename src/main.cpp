@@ -18,13 +18,14 @@ int main(int argc, const char** argv) {
     start = clock();
     cout << endl << filename << endl;
     StrokeWidthTransform swtDark(filename);
-    async(std::launch::async, &StrokeWidthTransform::execute, swtDark, true);
+    auto func = std::async(launch::async, &StrokeWidthTransform::execute, swtDark, true);
     duration = (clock() - start) / (double) CLOCKS_PER_SEC;
     cout << duration << endl;
     StrokeWidthTransform swtLight(filename);
     swtLight.execute(false);
     duration = (clock() - start) / (double) CLOCKS_PER_SEC;
     cout << duration << endl;
+    func.get();
     ConnectedComponents cc = ConnectedComponents(filename, swtDark.SWTMatrix, swtDark.result,
                                                  swtLight.SWTMatrix,
                                                  swtLight.result, swtDark.image);
