@@ -33,6 +33,7 @@ StrokeWidthTransform::StrokeWidthTransform(string filename) : filename(filename)
 
 
 void StrokeWidthTransform::execute(bool darkOnLight) {
+    cout << "strart" << endl;
     edgeDetection();
     gradient();
     buildSWT(darkOnLight); // true if white text on dark background, else false
@@ -40,6 +41,7 @@ void StrokeWidthTransform::execute(bool darkOnLight) {
     normalizeImage(SWTMatrix, SWTMatrix_norm);
     convertScaleAbs(SWTMatrix_norm, result, 255, 0);
   //  showAndSaveSWT(darkOnLight);
+  cout << "end" << endl;
 }
 
 void StrokeWidthTransform::edgeDetection() {

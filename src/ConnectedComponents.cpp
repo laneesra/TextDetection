@@ -12,8 +12,11 @@
 #include <boost/numeric/ublas/io.hpp>
 #include "ConnectedComponents.h"
 #include <iostream>
+#include <future>
+
 
 using namespace boost;
+using namespace std;
 
 
 ConnectedComponents::ConnectedComponents(string filename, Mat& SWTMatrixDark, Mat& SWTMatrixDarkNormU, Mat& SWTMatrixLight, Mat& SWTMatrixLightNormU, Mat& image) : SWTMatrixDark(std::move(SWTMatrixDark)), SWTMatrixLight(std::move(SWTMatrixLight)), filename(std::move(filename)), image(std::move(image)) {
@@ -23,10 +26,10 @@ ConnectedComponents::ConnectedComponents(string filename, Mat& SWTMatrixDark, Ma
 
 
 void ConnectedComponents::execute(Mat edge) {
-    findComponentsBoost(true);
-    firstStageFilter(true);
-
+    async(std::launch::async, &ConnectedComponents::findComponentsBoost, this, true);
     findComponentsBoost(false);
+
+    firstStageFilter(true);
     firstStageFilter(false);
     filename = filename.substr(filename.size() - 12, 8);
 
@@ -38,6 +41,7 @@ void ConnectedComponents::execute(Mat edge) {
 
 
 void ConnectedComponents::findComponentsBoost(bool darkOnLight) {
+    cout <<"start comp" << endl;
     boost::unordered_map<int, int> map;
     boost::unordered_map<int, SWTPoint> reverse_map;
     Mat SWTMatrix;
@@ -116,6 +120,7 @@ void ConnectedComponents::findComponentsBoost(bool darkOnLight) {
             comp->set_isdarkonlight(0);
         }
     }
+
 }
 
 
