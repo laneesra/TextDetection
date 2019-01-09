@@ -20,8 +20,8 @@ using namespace std;
 
 StrokeWidthTransform::StrokeWidthTransform(string filename) : filename(filename) {
     image = imread(filename);
-    int height = image.size[0];
     int width = image.size[1];
+    int height = image.size[0];
     gray = Mat(height, width, CV_8UC1);
     blurred = Mat(height, width, CV_32FC1);
     gradientY = Mat(height, width, CV_32FC1);

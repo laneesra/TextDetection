@@ -35,5 +35,6 @@ message Component {
 }
 
 message Components {
+
     repeated Component components = 1;
 }
