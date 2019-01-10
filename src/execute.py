@@ -1,9 +1,7 @@
 import feature_extraction
-import TextDetection.clf
+import clf
 import text_localizing
 
-
-id = input()
-feature_extraction.run(id)
-TextDetection.clf.predict_catboost(id)
-text_localizing.text_localizing(id)
+feature_extraction.run()
+clf.predict_catboost()
+text_localizing.text_localizing()

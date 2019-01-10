@@ -1,7 +1,9 @@
+import math
 from math import sqrt
 
-
-pi = 3.14159265359
+import cv2 as cv
+import Components_pb2 as pbcomp
+import numpy as np
 
 
 class Letter(object):
@@ -10,6 +12,7 @@ class Letter(object):
         self.ind = i
 
 
+pi = 180
 class Chain(object):
     def __init__(self):
         self.letters = []
@@ -20,7 +23,6 @@ class Chain(object):
         self.right_top = (-1, -1)
         self.right_bottom = (-1, -1)
         self.height = -1
-        self.proba = -1
 
     def merge(chainA, chainB):
         chainA_ind = set([let.ind for let in chainA.letters])
@@ -37,7 +39,7 @@ class Chain(object):
 
     def orientation_similarity(chainA, chainB):
         incl_angle = abs(chainA.direction - chainB.direction)
-        return incl_angle <= pi / 6
+        return incl_angle <= pi / 2
 
     def location_similarity(chainA, chainB):
         chainA_ind = [let.ind for let in chainA.letters]
@@ -72,7 +74,7 @@ class Pair(object):
             return 0.5 < self.letterA.comp.mean / self.letterB.comp.mean < 2.0 and \
             0.4 < self.letterA.comp.characteristic_scale / self.letterB.comp.characteristic_scale < 2.5 and \
             dist(self.letterA.comp.center_x, self.letterA.comp.center_y, self.letterB.comp.center_x, self.letterB.comp.center_y) < 1.5 * max(
-                           self.letterA.comp.major_axis, self.letterB.comp.major_axis, self.letterA.comp.minor_axis, self.letterB.comp.minor_axis)
+                           self.letterA.comp.minor_axis, self.letterB.comp.minor_axis)
         else:
             return False
 
@@ -111,8 +113,6 @@ def find_pairs(comp):
                     pair = Pair(comp, neigh)
                     if pair.is_valid():
                         chains_of_pairs.append(pair.set_to_chain())
-                    else:
-                        print(i, j)
     return chains_of_pairs
 
 

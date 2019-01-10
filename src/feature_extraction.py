@@ -19,10 +19,12 @@ def write_train_comp_to_df():
                 writer.writerow(row)
 
 
-def write_comp_to_df(id, components):
-    with open('../comp/component_IMG_' + id + '.df', 'w') as f:
+def write_comp_to_df(components):
+    with open('../comp/component_IMG.df', 'w') as f:
         writer = csv.DictWriter(f, delimiter='\t', fieldnames=comp_fieldnames)
         count = 0
+        print(count)
+
         for comp in components.components:
             q = len(comp.points)
             S = comp.minor_axis + comp.major_axis
@@ -62,15 +64,15 @@ def write_train_to_df():
     write_train_comp_to_df()
 
 
-def write_test_to_df(id, components):
-    write_comp_to_df(id, components)
+def write_test_to_df(components):
+    write_comp_to_df(components)
 
 
-def run(id):
-    f = open("../protobins/component_IMG_" + id + ".bin", "rb")
+def run():
+    f = open("../protobins/components.bin", "rb")
     components.ParseFromString(f.read())
     f.close()
-    write_test_to_df(id, components)
+    write_test_to_df(components)
 
 
 comp_fieldnames = ['image', 'id', 'width', 'height', 'mean', 'standard deviation', 'width variation', 'aspect ratio',
@@ -78,5 +80,4 @@ comp_fieldnames = ['image', 'id', 'width', 'height', 'mean', 'standard deviation
                   'isDarkOnLight', 'text']
 dirs = sorted(glob.glob('/home/laneesra/PycharmProjects/TextDetection/MSRA-TD500/train/catboost/IMG_*.JPG'), key=get_num_x)
 train_id = [dir[75:-4] for dir in dirs]
-k = 64
 components = pbcomp.Components()
