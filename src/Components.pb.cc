@@ -128,6 +128,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, istext_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, isdarkonlight_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, pred_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Component, filename_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::Components, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -138,7 +139,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::SWTPoint_buf)},
   { 8, -1, sizeof(::Component)},
-  { 36, -1, sizeof(::Components)},
+  { 37, -1, sizeof(::Components)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -169,7 +170,7 @@ void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
       "\n\020Components.proto\"1\n\014SWTPoint_buf\022\t\n\001x\030"
-      "\001 \001(\005\022\t\n\001y\030\002 \001(\005\022\013\n\003SWT\030\003 \001(\002\"\216\003\n\tCompon"
+      "\001 \001(\005\022\t\n\001y\030\002 \001(\005\022\013\n\003SWT\030\003 \001(\002\"\240\003\n\tCompon"
       "ent\022\035\n\006points\030\001 \003(\0132\r.SWTPoint_buf\022\014\n\004ma"
       "xX\030\002 \001(\005\022\014\n\004minX\030\003 \001(\005\022\014\n\004maxY\030\004 \001(\005\022\014\n\004"
       "minY\030\005 \001(\005\022\r\n\005width\030\006 \001(\002\022\016\n\006height\030\007 \001("
@@ -179,12 +180,12 @@ void AddDescriptorsImpl() {
       "c_scale\030\017 \001(\002\022\023\n\013orientation\030\020 \001(\002\022\020\n\010ce"
       "nter_x\030\021 \001(\002\022\020\n\010center_y\030\022 \001(\002\022\r\n\005image\030"
       "\023 \001(\005\022\n\n\002id\030\024 \001(\005\022\016\n\006isText\030\025 \001(\010\022\025\n\risD"
-      "arkOnLight\030\026 \001(\010\022\014\n\004pred\030\027 \001(\010\",\n\nCompon"
-      "ents\022\036\n\ncomponents\030\001 \003(\0132\n.Componentb\006pr"
-      "oto3"
+      "arkOnLight\030\026 \001(\010\022\014\n\004pred\030\027 \001(\010\022\020\n\010filena"
+      "me\030\030 \001(\t\",\n\nComponents\022\036\n\ncomponents\030\001 \003"
+      "(\0132\n.Componentb\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 524);
+      descriptor, 542);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "Components.proto", &protobuf_RegisterTypes);
 }
@@ -528,6 +529,7 @@ const int Component::kIdFieldNumber;
 const int Component::kIsTextFieldNumber;
 const int Component::kIsDarkOnLightFieldNumber;
 const int Component::kPredFieldNumber;
+const int Component::kFilenameFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 Component::Component()
@@ -542,6 +544,10 @@ Component::Component(const Component& from)
       _internal_metadata_(NULL),
       points_(from.points_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
+  filename_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.filename().size() > 0) {
+    filename_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.filename_);
+  }
   ::memcpy(&maxx_, &from.maxx_,
     static_cast<size_t>(reinterpret_cast<char*>(&pred_) -
     reinterpret_cast<char*>(&maxx_)) + sizeof(pred_));
@@ -549,6 +555,7 @@ Component::Component(const Component& from)
 }
 
 void Component::SharedCtor() {
+  filename_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&maxx_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&pred_) -
       reinterpret_cast<char*>(&maxx_)) + sizeof(pred_));
@@ -560,6 +567,7 @@ Component::~Component() {
 }
 
 void Component::SharedDtor() {
+  filename_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
 void Component::SetCachedSize(int size) const {
@@ -583,6 +591,7 @@ void Component::Clear() {
   (void) cached_has_bits;
 
   points_.Clear();
+  filename_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&maxx_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&pred_) -
       reinterpret_cast<char*>(&maxx_)) + sizeof(pred_));
@@ -919,6 +928,22 @@ bool Component::MergePartialFromCodedStream(
         break;
       }
 
+      // string filename = 24;
+      case 24: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(194u /* 194 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_filename()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->filename().data(), static_cast<int>(this->filename().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "Component.filename"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
       default: {
       handle_unusual:
         if (tag == 0) {
@@ -1064,6 +1089,16 @@ void Component::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteBool(23, this->pred(), output);
   }
 
+  // string filename = 24;
+  if (this->filename().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->filename().data(), static_cast<int>(this->filename().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "Component.filename");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      24, this->filename(), output);
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
@@ -1196,6 +1231,17 @@ void Component::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(23, this->pred(), target);
   }
 
+  // string filename = 24;
+  if (this->filename().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->filename().data(), static_cast<int>(this->filename().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "Component.filename");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        24, this->filename(), target);
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
@@ -1222,6 +1268,13 @@ size_t Component::ByteSizeLong() const {
         ::google::protobuf::internal::WireFormatLite::MessageSize(
           this->points(static_cast<int>(i)));
     }
+  }
+
+  // string filename = 24;
+  if (this->filename().size() > 0) {
+    total_size += 2 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->filename());
   }
 
   // int32 maxX = 2;
@@ -1374,6 +1427,10 @@ void Component::MergeFrom(const Component& from) {
   (void) cached_has_bits;
 
   points_.MergeFrom(from.points_);
+  if (from.filename().size() > 0) {
+
+    filename_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.filename_);
+  }
   if (from.maxx() != 0) {
     set_maxx(from.maxx());
   }
@@ -1467,6 +1524,8 @@ void Component::Swap(Component* other) {
 void Component::InternalSwap(Component* other) {
   using std::swap;
   CastToBase(&points_)->InternalSwap(CastToBase(&other->points_));
+  filename_.Swap(&other->filename_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+    GetArenaNoVirtual());
   swap(maxx_, other->maxx_);
   swap(minx_, other->minx_);
   swap(maxy_, other->maxy_);

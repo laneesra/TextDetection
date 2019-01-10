@@ -32,6 +32,7 @@ message Component {
     bool isText = 21; // 1 - is text symbol; 0 - is not the text symbol
     bool isDarkOnLight = 22;
     bool pred = 23;
+    string filename = 24;
 }
 
 message Components {

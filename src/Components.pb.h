@@ -280,6 +280,20 @@ class Component : public ::google::protobuf::Message /* @@protoc_insertion_point
   const ::google::protobuf::RepeatedPtrField< ::SWTPoint_buf >&
       points() const;
 
+  // string filename = 24;
+  void clear_filename();
+  static const int kFilenameFieldNumber = 24;
+  const ::std::string& filename() const;
+  void set_filename(const ::std::string& value);
+  #if LANG_CXX11
+  void set_filename(::std::string&& value);
+  #endif
+  void set_filename(const char* value);
+  void set_filename(const char* value, size_t size);
+  ::std::string* mutable_filename();
+  ::std::string* release_filename();
+  void set_allocated_filename(::std::string* filename);
+
   // int32 maxX = 2;
   void clear_maxx();
   static const int kMaxXFieldNumber = 2;
@@ -417,6 +431,7 @@ class Component : public ::google::protobuf::Message /* @@protoc_insertion_point
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::RepeatedPtrField< ::SWTPoint_buf > points_;
+  ::google::protobuf::internal::ArenaStringPtr filename_;
   ::google::protobuf::int32 maxx_;
   ::google::protobuf::int32 minx_;
   ::google::protobuf::int32 maxy_;
@@ -944,6 +959,59 @@ inline void Component::set_pred(bool value) {
   
   pred_ = value;
   // @@protoc_insertion_point(field_set:Component.pred)
+}
+
+// string filename = 24;
+inline void Component::clear_filename() {
+  filename_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& Component::filename() const {
+  // @@protoc_insertion_point(field_get:Component.filename)
+  return filename_.GetNoArena();
+}
+inline void Component::set_filename(const ::std::string& value) {
+  
+  filename_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:Component.filename)
+}
+#if LANG_CXX11
+inline void Component::set_filename(::std::string&& value) {
+  
+  filename_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:Component.filename)
+}
+#endif
+inline void Component::set_filename(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  filename_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:Component.filename)
+}
+inline void Component::set_filename(const char* value, size_t size) {
+  
+  filename_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:Component.filename)
+}
+inline ::std::string* Component::mutable_filename() {
+  
+  // @@protoc_insertion_point(field_mutable:Component.filename)
+  return filename_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* Component::release_filename() {
+  // @@protoc_insertion_point(field_release:Component.filename)
+  
+  return filename_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void Component::set_allocated_filename(::std::string* filename) {
+  if (filename != NULL) {
+    
+  } else {
+    
+  }
+  filename_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), filename);
+  // @@protoc_insertion_point(field_set_allocated:Component.filename)
 }
 
 // -------------------------------------------------------------------
