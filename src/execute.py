@@ -3,7 +3,6 @@ import clf
 import text_localizing
 
 
-id = raw_input()
-feature_extraction.run(id)
-clf.predict_catboost(id)
-text_localizing.text_localizing(id)
+feature_extraction.run()
+clf.predict_catboost()
+text_localizing.text_localizing()
