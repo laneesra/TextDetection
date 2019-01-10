@@ -1,12 +1,13 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
 project(TextDetection)
 
+set(OpenCV_DIR /opt/opencv-3.3.0/build)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
+set(SOURCE_FILES main.cpp ConnectedComponents.cpp ConnectedComponents.h Components.pb.cc)
+set(CMAKE_INCLUDE_PATH /usr/local/lib)
 find_package(OpenCV REQUIRED)
 find_package(Boost 1.68.0 COMPONENTS system filesystem REQUIRED)
 find_package(Protobuf REQUIRED)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(SOURCE_FILES main.cpp ConnectedComponents.cpp ConnectedComponents.h Components.pb.cc)
-set(CMAKE_INCLUDE_PATH /usr/local/lib)
 
 add_executable(TextDetection main.cpp StrokeWidthTransform.cpp StrokeWidthTransform.h ${SOURCE_FILES})
 include_directories(${OpenCV_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${PROTOBUF_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})

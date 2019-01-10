@@ -31,14 +31,17 @@ StrokeWidthTransform::StrokeWidthTransform(string filename) : filename(filename)
     result = Mat(height, width, CV_8UC1);
 }
 
+
 void StrokeWidthTransform::execute(bool darkOnLight) {
+    cout << "strart" << endl;
     edgeDetection();
     gradient();
     buildSWT(darkOnLight); // true if white text on dark background, else false
     medianFilter();
     normalizeImage(SWTMatrix, SWTMatrix_norm);
     convertScaleAbs(SWTMatrix_norm, result, 255, 0);
-  //  showAndSaveSWT(darkOnLight);
+   // showAndSaveSWT(darkOnLight);
+    cout << "end" << endl;
 }
 
 void StrokeWidthTransform::edgeDetection() {
@@ -73,8 +76,8 @@ void StrokeWidthTransform::showAndSaveSWT(bool darkOnLight) {
     } else {
         imwrite("../images/" + filename + "_SWT" + "_light.jpg", result);
     }
-   // imshow("SWT", result);
-  //  waitKey(0);
+    imshow("SWT", result);
+    waitKey(0);
 }
 
 
@@ -177,7 +180,7 @@ void StrokeWidthTransform::buildSWT(bool dark_on_light) {
 }
 
 
-void StrokeWidthTransform::normalizeImage (Mat input, Mat output) {
+void StrokeWidthTransform::normalizeImage(Mat& input, Mat& output) {
     float maxVal = 0;
     float minVal = 255;
     for (int row = 0; row < input.rows; row++) {

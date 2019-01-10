@@ -12,23 +12,24 @@
 #include <boost/numeric/ublas/io.hpp>
 #include "ConnectedComponents.h"
 #include <iostream>
+#include <future>
+
 
 using namespace boost;
-float PI = 3.14159265359;
+using namespace std;
 
 
-ConnectedComponents::ConnectedComponents(string filename, Mat SWTMatrixDark, Mat SWTMatrixDarkNormU, Mat SWTMatrixLight, Mat SWTMatrixLightNormU, Mat image) : SWTMatrixDark(std::move(SWTMatrixDark)), SWTMatrixLight(std::move(SWTMatrixLight)), filename(std::move(filename)), image(std::move(image)) {
-    cvtColor(SWTMatrixDarkNormU, connectedComponentsDark, COLOR_GRAY2BGR);
-    cvtColor(SWTMatrixLightNormU, connectedComponentsLight, COLOR_GRAY2BGR);
+ConnectedComponents::ConnectedComponents(string filename, Mat& SWTMatrix, Mat& SWTMatrixNormU, Mat& image, bool isDarkOnLight) : SWTMatrix(SWTMatrix), filename(filename), image(image), isDarkOnLight(isDarkOnLight) {
+    cvtColor(SWTMatrixNormU, connectedComponents, COLOR_GRAY2BGR);
 }
 
 
 void ConnectedComponents::execute(Mat edge) {
-    findComponentsBoost(true);
-    firstStageFilter(true);
+  //  auto func = async(launch::async, &ConnectedComponents::findComponentsBoost, this, true);
+    findComponentsBoost();
+    firstStageFilter();
+    filename = filename.substr(filename.size() - 12, 8);
 
-    findComponentsBoost(false);
-    firstStageFilter(false);
     //markComponents();
     //showAndSaveComponents();
     computeFeatures(edge);
@@ -36,19 +37,10 @@ void ConnectedComponents::execute(Mat edge) {
 }
 
 
-void ConnectedComponents::findComponentsBoost(bool darkOnLight) {
+void ConnectedComponents::findComponentsBoost() {
+    cout <<"start comp" << endl;
     boost::unordered_map<int, int> map;
     boost::unordered_map<int, SWTPoint> reverse_map;
-    Mat SWTMatrix;
-    Components* components;
-
-    if (darkOnLight) {
-        SWTMatrix = SWTMatrixDark;
-        components = &componentsDark;
-    } else {
-        SWTMatrix = SWTMatrixLight;
-        components = &componentsLight;
-    }
 
     typedef adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> Graph;
     int num_vertices = 0;
@@ -73,7 +65,7 @@ void ConnectedComponents::findComponentsBoost(bool darkOnLight) {
                 if (col + 1 < SWTMatrix.cols) {
                     float right = SWTMatrix.at<float>(row, col + 1);
                     if (right > 0 && (swt / right <= 3.0 || right / swt <= 3.0))
-                        add_edge(this_pixel, map.at(row *SWTMatrix.cols + col + 1), g);
+                        add_edge(this_pixel, map.at(row * SWTMatrix.cols + col + 1), g);
                 }
                 if (col - 1 >= 0) {
                     float left = SWTMatrix.at<float>(row , col - 1);
@@ -99,48 +91,40 @@ void ConnectedComponents::findComponentsBoost(bool darkOnLight) {
     int num_comp = boost::connected_components(g, &c[0]);
 
     for (int j = 0; j < num_comp; j++) {
-        components->add_components();
+        components.add_components();
     }
 
     for (int j = 0; j < num_vertices; j++) {
-        Component* comp = components->mutable_components(c[j]);
+        Component* comp = components.mutable_components(c[j]);
         auto points = comp->mutable_points();
         auto point = points->Add();
         point->set_x(reverse_map[j].x);
         point->set_y(reverse_map[j].y);
         point->set_swt(reverse_map[j].SWT);
-        if (darkOnLight) {
+        if (isDarkOnLight) {
             comp->set_isdarkonlight(1);
         } else {
             comp->set_isdarkonlight(0);
         }
     }
+    cout << "end" << endl;
 }
 
 
-void ConnectedComponents::firstStageFilter(bool darkOnLight) {
-    Components* components;
-    Mat morphImg, src;
+void ConnectedComponents::firstStageFilter() {
+    Mat morphImg;
     Mat element = getStructuringElement(MORPH_RECT, Size(2, 2), Point(1, 1));
 
-    if (darkOnLight) {
-        components = &componentsDark;
-        src = connectedComponentsDark;
-    } else {
-        components = &componentsLight;
-        src = connectedComponentsLight;
-    }
-
-    dilate(src, morphImg, element);
+    dilate(connectedComponents, morphImg, element);
     erode(morphImg, morphImg, element);
-    for (int i = 0; i < components->mutable_components()->size(); i++) {
-        improveComponentSWT(components->mutable_components(i), morphImg, darkOnLight);
+    for (int i = 0; i < components.mutable_components()->size(); i++) {
+        improveComponentSWT(components.mutable_components(i), morphImg);
 
         int maxY = 0, maxX = 0;
         int minY = image.size[1];
         int minX = image.size[0];
 
-        for (auto &pixel : components->mutable_components(i)->points()) {
+        for (auto &pixel : components.mutable_components(i)->points()) {
             maxY = max(maxY, pixel.y());
             maxX = max(maxX, pixel.x());
             minY = min(minY, pixel.y());
@@ -148,7 +132,7 @@ void ConnectedComponents::firstStageFilter(bool darkOnLight) {
         }
 
         if (maxY != minY && maxX != minX) {
-            setValidComponent(components->mutable_components(i), maxX, minX, maxY, minY);
+            setValidComponent(components.mutable_components(i), maxX, minX, maxY, minY);
         }
     }
 }
@@ -182,6 +166,7 @@ void ConnectedComponents::markComponents() {
 
         if (keyPress == '1') {
             comp->set_istext(1);
+            comp->set_istext(1);
             cout << i << " text" << endl;
         } else if (keyPress == '0'){
             comp->set_istext(0);
@@ -195,32 +180,26 @@ void ConnectedComponents::markComponents() {
 }
 
 void ConnectedComponents::showAndSaveComponents() {
-    filename = filename.substr(filename.size() - 12, 8);
     int count = 0;
     for (auto comp : validComponents.components()) {
         Mat compImg = image(Rect(comp.miny(), comp.minx(), comp.height(), comp.width()));
         imwrite("../components/" + filename + "/COMP_" + to_string(count) + ".JPG", compImg);
-        Mat src;
-        if (comp.isdarkonlight()) {
-            src = connectedComponentsDark;
-        } else {
-            src = connectedComponentsLight;
-        }
-        line(src, Point(comp.maxy(), comp.minx()), Point(comp.maxy(), comp.maxx()), Scalar(0, 191, 255), 2);
-        line(src, Point(comp.miny(), comp.minx()), Point(comp.miny(), comp.maxx()), Scalar(0, 191, 255), 2);
-        line(src, Point(comp.maxy(), comp.minx()), Point(comp.miny(), comp.minx()), Scalar(0, 191, 255), 2);
-        line(src, Point(comp.maxy(), comp.maxx()), Point(comp.miny(), comp.maxx()), Scalar(0, 191, 255), 2);
+        line(connectedComponents, Point(comp.maxy(), comp.minx()), Point(comp.maxy(), comp.maxx()), Scalar(0, 191, 255), 2);
+        line(connectedComponents, Point(comp.miny(), comp.minx()), Point(comp.miny(), comp.maxx()), Scalar(0, 191, 255), 2);
+        line(connectedComponents, Point(comp.maxy(), comp.minx()), Point(comp.miny(), comp.minx()), Scalar(0, 191, 255), 2);
+        line(connectedComponents, Point(comp.maxy(), comp.maxx()), Point(comp.miny(), comp.maxx()), Scalar(0, 191, 255), 2);
         count++;
     }
- //   namedWindow("Connected components", WINDOW_NORMAL);
- //   resizeWindow("Connected components", connectedComponentsDark.size[0]*4/5, connectedComponentsDark.size[1]*4/5);
-    //imshow("Connected components", connectedComponentsDark);
-    //imwrite("../images/" + filename + "_connectedComponentsDark.jpg", connectedComponentsDark);
-   // waitKey(0);
+    //   namedWindow("Connected components", WINDOW_NORMAL);
+    //   resizeWindow("Connected components", connectedComponentsDark.size[0]*4/5, connectedComponentsDark.size[1]*4/5);
+    imshow("Connected components", connectedComponents);
+    waitKey(0);
 
-  //  imshow("Connected components", connectedComponentsLight);
-    //imwrite("../images/" + filename + "_connectedComponentsLight.jpg", connectedComponentsLight);
-    // waitKey(0);
+    if (isDarkOnLight) {
+        imwrite("../images/" + filename + "_connectedComponentsDark.jpg", connectedComponents);
+    } else {
+        imwrite("../images/" + filename + "_connectedComponentsLight.jpg", connectedComponents);
+    }
 }
 
 
@@ -270,21 +249,15 @@ void ConnectedComponents::setValidComponent(Component* comp, int maxX, int minX,
     }
 }
 
-void ConnectedComponents::improveComponentSWT(Component* comp, Mat morphImg, bool darkOnLight) {
+void ConnectedComponents::improveComponentSWT(Component* comp, Mat& morphImg) {
     vector<SWTPoint_buf> validPoints;
-    Mat *SWT;
-    if (darkOnLight) {
-        SWT = &connectedComponentsDark;
-    } else {
-        SWT = &connectedComponentsLight;
-    }
     for (auto p : comp->points()) {
         if (p.x() > 0 && p.y() > 0 && p.y() < morphImg.size[1] && p.x() < morphImg.size[0] &&
             morphImg.at<Vec3b>(p.x(), p.y()) == Vec3b(255, 255, 255)) {
-     //       SWT->at<Vec3b>(p.x(), p.y()) = Vec3b(255, 255, 255);
+            //       SWT->at<Vec3b>(p.x(), p.y()) = Vec3b(255, 255, 255);
         } else if (p.x() > 0 && p.y() > 0 && p.y() < morphImg.size[1] && p.x() < morphImg.size[0]) {
             validPoints.emplace_back(p);
-     //       SWT->at<Vec3b>(p.x(), p.y()) = Vec3b(0, 0, 0);
+            //       SWT->at<Vec3b>(p.x(), p.y()) = Vec3b(0, 0, 0);
         }
     }
     comp->clear_points();
@@ -299,7 +272,7 @@ void ConnectedComponents::improveComponentSWT(Component* comp, Mat morphImg, boo
 }
 
 
-void ConnectedComponents::computeFeatures(Mat edge) {
+void ConnectedComponents::computeFeatures(Mat& edge) {
     /// find text orientation
     Mat angles = Mat(image.size[0], image.size[1], CV_32F, Scalar(0));
     Mat cdst;
@@ -312,7 +285,7 @@ void ConnectedComponents::computeFeatures(Mat edge) {
         p1 = Point(l[0], l[1]);
         p2 = Point(l[2], l[3]);
         line(cdst, p1, p2, Scalar(0, 191, 255), 3, 1);
-        float angle = roundf((atan2(p1.x - p2.x, p1.y - p2.y) + PI / 2) * 100) / 100 ;
+        float angle = roundf((atan2(p1.x - p2.x, p1.y - p2.y) + CV_PI / 2) * 100) / 100 ;
         LineIterator it(angles, p1, p2, 8);
         LineIterator it2 = it;
 
@@ -332,7 +305,7 @@ void ConnectedComponents::computeFeatures(Mat edge) {
     image.copyTo(rotComps);
     for (int i = 0; i < validComponents.components().size(); i++) {
         auto c = validComponents.mutable_components(i);
-        c->set_image(0);
+        c->set_image(stoi(filename.substr(4, 4)));
         c->set_id(i);
         vector<float> orients;
         float orientation = 0, centerY = 0, centerX = 0;
@@ -364,7 +337,7 @@ void ConnectedComponents::computeFeatures(Mat edge) {
 }
 
 void ConnectedComponents::saveData() {
-    const string result_file = "../protobins/components.bin";
+    const string result_file = "../protobins/component_" + filename + ".bin";
     fstream output(result_file, ios::out | ios::binary);
     if (!validComponents.SerializeToOstream(&output)) {
         cerr << "Failed to serialize data" << endl;
