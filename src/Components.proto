@@ -33,6 +33,7 @@ message Component {
     bool isDarkOnLight = 22;
     bool pred = 23;
     string filename = 24;
+    float proba = 25;
 }
 
 message Components {
