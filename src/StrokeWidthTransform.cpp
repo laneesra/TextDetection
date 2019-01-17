@@ -40,7 +40,7 @@ void StrokeWidthTransform::execute(bool darkOnLight) {
     medianFilter();
     normalizeImage(SWTMatrix, SWTMatrix_norm);
     convertScaleAbs(SWTMatrix_norm, result, 255, 0);
-   // showAndSaveSWT(darkOnLight);
+    //showAndSaveSWT(darkOnLight);
     cout << "end" << endl;
 }
 
@@ -48,16 +48,16 @@ void StrokeWidthTransform::edgeDetection() {
     cvtColor(image, gray, COLOR_BGR2GRAY);
     blur(gray, gray, Size(4, 4));
     Mat thresh;
-    edge_threshold_high = threshold(gray, thresh, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU) * 1.3;
-    edge_threshold_low = edge_threshold_high * 0.5;
-    cout << edge_threshold_low << " " << edge_threshold_high << endl;
+   // edge_threshold_high = threshold(gray, thresh, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+  //  edge_threshold_low = edge_threshold_high * 0.5;
+  //  cout << edge_threshold_low << " " << edge_threshold_high << endl;
 
     //adaptiveThreshold(gray, edge, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 11, 2);
     Canny(gray, edge, edge_threshold_low, edge_threshold_high, 3);
     filename = filename.substr(filename.size() - 12);
     // imwrite("../images/" + filename + "_Canny.jpg", edge);
     // imwrite("../images/" + filename + "_Canny.jpg", edge);
-    //imshow("edges morph", edge);
+    //imshow("edges", edge);
     //waitKey(0);
 }
 
