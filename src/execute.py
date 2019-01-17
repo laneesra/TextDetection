@@ -38,8 +38,8 @@ def make_chain_dataset():
     ca.write_train_chains_to_df()
 
 
-make_chain_dataset()
-
+#make_chain_dataset()
+clf.fit_catboost()
 
 #execute(True)
 #execute(False)

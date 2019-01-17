@@ -2,6 +2,15 @@ from catboost import CatBoostClassifier, Pool
 import Components_pb2 as pbcomp
 
 
+def fit_catboost():
+    train_file = '.././chains.df'
+    cd_file = '.././chains.cd'
+    train_pool = Pool(train_file, column_description=cd_file)
+    model = CatBoostClassifier(depth=3, iterations=100, eval_metric='F1', task_type='CPU')
+    model.fit(train_pool)
+    model.save_model('chain.model')
+
+
 def predict_catboost(is_dark_on_light):
     if is_dark_on_light:
         test_comp_file = '../comp/components_dark.df'
