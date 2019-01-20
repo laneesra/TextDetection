@@ -1,18 +1,13 @@
-import math
 from math import sqrt
-
-import cv2 as cv
-import Components_pb2 as pbcomp
-import numpy as np
 
 
 class Letter(object):
     def __init__(self, comp, i):
         self.comp = comp
         self.ind = i
+        self.dist = -1
 
 
-pi = 180
 class Chain(object):
     def __init__(self):
         self.letters = []
@@ -23,6 +18,7 @@ class Chain(object):
         self.right_top = (-1, -1)
         self.right_bottom = (-1, -1)
         self.height = -1
+        self.candidate_count = -1
 
     def merge(chainA, chainB):
         chainA_ind = set([let.ind for let in chainA.letters])
@@ -31,7 +27,14 @@ class Chain(object):
             if l.ind not in chainA_ind:
                 chainA.letters.append(l)
 
-        chainA.direction = (chainA.direction + chainB.direction) / 2
+        chainA.candidate_count = len(chainA.letters)
+
+        direction = 0
+        for l in chainA.letters:
+            direction += l.comp.orientation
+
+        direction /= len(chainA.letters)
+        chainA.direction = direction
         chainA.set_bounding_box()
 
     def candidate_len(self):
@@ -39,7 +42,7 @@ class Chain(object):
 
     def orientation_similarity(chainA, chainB):
         incl_angle = abs(chainA.direction - chainB.direction)
-        return incl_angle <= pi / 2
+        return incl_angle <= 90
 
     def location_similarity(chainA, chainB):
         chainA_ind = [let.ind for let in chainA.letters]
@@ -50,7 +53,7 @@ class Chain(object):
             return False
 
     def is_similar(chainA, chainB):
-            return chainA.orientation_similarity(chainB) and chainA.location_similarity(chainB)
+        return chainA.orientation_similarity(chainB) and chainA.location_similarity(chainB)
 
     def set_bounding_box(self):
         compsX = sorted([l.comp for l in self.letters], key=get_min_x)
@@ -72,9 +75,10 @@ class Pair(object):
         self.letterB.comp.characteristic_scale = self.letterB.comp.minor_axis + self.letterB.comp.major_axis
         if self.letterB.comp.characteristic_scale and self.letterB.comp.mean:
             return 0.5 < self.letterA.comp.mean / self.letterB.comp.mean < 2.0 and \
-            0.4 < self.letterA.comp.characteristic_scale / self.letterB.comp.characteristic_scale < 2.5 and \
-            dist(self.letterA.comp.center_x, self.letterA.comp.center_y, self.letterB.comp.center_x, self.letterB.comp.center_y) < 1.5 * max(
-                           self.letterA.comp.minor_axis, self.letterB.comp.minor_axis)
+                   0.4 < self.letterA.comp.characteristic_scale / self.letterB.comp.characteristic_scale < 2.5 and \
+                   dist(self.letterA.comp.center_x, self.letterA.comp.center_y, self.letterB.comp.center_x,
+                        self.letterB.comp.center_y) < 2 * max(
+                self.letterA.comp.minor_axis, self.letterB.comp.minor_axis)
         else:
             return False
 
@@ -96,7 +100,7 @@ def get_min_y(comp):
 
 
 def dist(x1, y1, x2, y2):
-    return sqrt((x1 - x2)**2 + (y1 - y2)**2)
+    return sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
 
 def find_pairs(comp):
@@ -113,6 +117,7 @@ def find_pairs(comp):
                     pair = Pair(comp, neigh)
                     if pair.is_valid():
                         chains_of_pairs.append(pair.set_to_chain())
+
     return chains_of_pairs
 
 
@@ -142,5 +147,3 @@ def merge_chains(chains):
         length = len(lines)
 
     return lines
-
-

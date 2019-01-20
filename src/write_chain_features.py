@@ -1,16 +1,8 @@
 import csv
-import glob
-import pandas
-
-
-def get_num(path):
-    return int(path[66:-4])
 
 
 chain_fieldnames = ['image', 'isText', 'id', 'candidate count', 'average probability', 'average direction', 'size variation',
                    'distance variation', 'average axial ratio', 'average density', 'average width variation', 'colors']
-dirs = sorted(glob.glob('/home/laneesra/PycharmProjects/TextDetection/MSRA-TD500/train/IMG_*.JPG'), key=get_num)
-train_id = [dir[66:-4] for dir in dirs]
 
 
 def write_chain_to_df(candidate_count, average_probability, size_variation, distance_variation, average_axial_ratio,
