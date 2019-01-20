@@ -280,6 +280,20 @@ class Component : public ::google::protobuf::Message /* @@protoc_insertion_point
   const ::google::protobuf::RepeatedPtrField< ::SWTPoint_buf >&
       points() const;
 
+  // string filename = 24;
+  void clear_filename();
+  static const int kFilenameFieldNumber = 24;
+  const ::std::string& filename() const;
+  void set_filename(const ::std::string& value);
+  #if LANG_CXX11
+  void set_filename(::std::string&& value);
+  #endif
+  void set_filename(const char* value);
+  void set_filename(const char* value, size_t size);
+  ::std::string* mutable_filename();
+  ::std::string* release_filename();
+  void set_allocated_filename(::std::string* filename);
+
   // int32 maxX = 2;
   void clear_maxx();
   static const int kMaxXFieldNumber = 2;
@@ -346,35 +360,78 @@ class Component : public ::google::protobuf::Message /* @@protoc_insertion_point
   float or_() const;
   void set_or_(float value);
 
-  // float characteristic_scale = 13;
+  // float major_axis = 13;
+  void clear_major_axis();
+  static const int kMajorAxisFieldNumber = 13;
+  float major_axis() const;
+  void set_major_axis(float value);
+
+  // float minor_axis = 14;
+  void clear_minor_axis();
+  static const int kMinorAxisFieldNumber = 14;
+  float minor_axis() const;
+  void set_minor_axis(float value);
+
+  // float characteristic_scale = 15;
   void clear_characteristic_scale();
-  static const int kCharacteristicScaleFieldNumber = 13;
+  static const int kCharacteristicScaleFieldNumber = 15;
   float characteristic_scale() const;
   void set_characteristic_scale(float value);
 
-  // float orientation = 14;
+  // float orientation = 16;
   void clear_orientation();
-  static const int kOrientationFieldNumber = 14;
+  static const int kOrientationFieldNumber = 16;
   float orientation() const;
   void set_orientation(float value);
 
-  // float center_x = 15;
+  // float center_x = 17;
   void clear_center_x();
-  static const int kCenterXFieldNumber = 15;
+  static const int kCenterXFieldNumber = 17;
   float center_x() const;
   void set_center_x(float value);
 
-  // float center_y = 16;
+  // float center_y = 18;
   void clear_center_y();
-  static const int kCenterYFieldNumber = 16;
+  static const int kCenterYFieldNumber = 18;
   float center_y() const;
   void set_center_y(float value);
+
+  // int32 image = 19;
+  void clear_image();
+  static const int kImageFieldNumber = 19;
+  ::google::protobuf::int32 image() const;
+  void set_image(::google::protobuf::int32 value);
+
+  // int32 id = 20;
+  void clear_id();
+  static const int kIdFieldNumber = 20;
+  ::google::protobuf::int32 id() const;
+  void set_id(::google::protobuf::int32 value);
+
+  // bool isText = 21;
+  void clear_istext();
+  static const int kIsTextFieldNumber = 21;
+  bool istext() const;
+  void set_istext(bool value);
+
+  // bool isDarkOnLight = 22;
+  void clear_isdarkonlight();
+  static const int kIsDarkOnLightFieldNumber = 22;
+  bool isdarkonlight() const;
+  void set_isdarkonlight(bool value);
+
+  // bool pred = 23;
+  void clear_pred();
+  static const int kPredFieldNumber = 23;
+  bool pred() const;
+  void set_pred(bool value);
 
   // @@protoc_insertion_point(class_scope:Component)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::RepeatedPtrField< ::SWTPoint_buf > points_;
+  ::google::protobuf::internal::ArenaStringPtr filename_;
   ::google::protobuf::int32 maxx_;
   ::google::protobuf::int32 minx_;
   ::google::protobuf::int32 maxy_;
@@ -386,10 +443,17 @@ class Component : public ::google::protobuf::Message /* @@protoc_insertion_point
   float wv_;
   float ar_;
   float or__;
+  float major_axis_;
+  float minor_axis_;
   float characteristic_scale_;
   float orientation_;
   float center_x_;
   float center_y_;
+  ::google::protobuf::int32 image_;
+  ::google::protobuf::int32 id_;
+  bool istext_;
+  bool isdarkonlight_;
+  bool pred_;
   mutable ::google::protobuf::internal::CachedSize _cached_size_;
   friend struct ::protobuf_Components_2eproto::TableStruct;
 };
@@ -743,7 +807,35 @@ inline void Component::set_or_(float value) {
   // @@protoc_insertion_point(field_set:Component.OR)
 }
 
-// float characteristic_scale = 13;
+// float major_axis = 13;
+inline void Component::clear_major_axis() {
+  major_axis_ = 0;
+}
+inline float Component::major_axis() const {
+  // @@protoc_insertion_point(field_get:Component.major_axis)
+  return major_axis_;
+}
+inline void Component::set_major_axis(float value) {
+  
+  major_axis_ = value;
+  // @@protoc_insertion_point(field_set:Component.major_axis)
+}
+
+// float minor_axis = 14;
+inline void Component::clear_minor_axis() {
+  minor_axis_ = 0;
+}
+inline float Component::minor_axis() const {
+  // @@protoc_insertion_point(field_get:Component.minor_axis)
+  return minor_axis_;
+}
+inline void Component::set_minor_axis(float value) {
+  
+  minor_axis_ = value;
+  // @@protoc_insertion_point(field_set:Component.minor_axis)
+}
+
+// float characteristic_scale = 15;
 inline void Component::clear_characteristic_scale() {
   characteristic_scale_ = 0;
 }
@@ -757,7 +849,7 @@ inline void Component::set_characteristic_scale(float value) {
   // @@protoc_insertion_point(field_set:Component.characteristic_scale)
 }
 
-// float orientation = 14;
+// float orientation = 16;
 inline void Component::clear_orientation() {
   orientation_ = 0;
 }
@@ -771,7 +863,7 @@ inline void Component::set_orientation(float value) {
   // @@protoc_insertion_point(field_set:Component.orientation)
 }
 
-// float center_x = 15;
+// float center_x = 17;
 inline void Component::clear_center_x() {
   center_x_ = 0;
 }
@@ -785,7 +877,7 @@ inline void Component::set_center_x(float value) {
   // @@protoc_insertion_point(field_set:Component.center_x)
 }
 
-// float center_y = 16;
+// float center_y = 18;
 inline void Component::clear_center_y() {
   center_y_ = 0;
 }
@@ -797,6 +889,129 @@ inline void Component::set_center_y(float value) {
   
   center_y_ = value;
   // @@protoc_insertion_point(field_set:Component.center_y)
+}
+
+// int32 image = 19;
+inline void Component::clear_image() {
+  image_ = 0;
+}
+inline ::google::protobuf::int32 Component::image() const {
+  // @@protoc_insertion_point(field_get:Component.image)
+  return image_;
+}
+inline void Component::set_image(::google::protobuf::int32 value) {
+  
+  image_ = value;
+  // @@protoc_insertion_point(field_set:Component.image)
+}
+
+// int32 id = 20;
+inline void Component::clear_id() {
+  id_ = 0;
+}
+inline ::google::protobuf::int32 Component::id() const {
+  // @@protoc_insertion_point(field_get:Component.id)
+  return id_;
+}
+inline void Component::set_id(::google::protobuf::int32 value) {
+  
+  id_ = value;
+  // @@protoc_insertion_point(field_set:Component.id)
+}
+
+// bool isText = 21;
+inline void Component::clear_istext() {
+  istext_ = false;
+}
+inline bool Component::istext() const {
+  // @@protoc_insertion_point(field_get:Component.isText)
+  return istext_;
+}
+inline void Component::set_istext(bool value) {
+  
+  istext_ = value;
+  // @@protoc_insertion_point(field_set:Component.isText)
+}
+
+// bool isDarkOnLight = 22;
+inline void Component::clear_isdarkonlight() {
+  isdarkonlight_ = false;
+}
+inline bool Component::isdarkonlight() const {
+  // @@protoc_insertion_point(field_get:Component.isDarkOnLight)
+  return isdarkonlight_;
+}
+inline void Component::set_isdarkonlight(bool value) {
+  
+  isdarkonlight_ = value;
+  // @@protoc_insertion_point(field_set:Component.isDarkOnLight)
+}
+
+// bool pred = 23;
+inline void Component::clear_pred() {
+  pred_ = false;
+}
+inline bool Component::pred() const {
+  // @@protoc_insertion_point(field_get:Component.pred)
+  return pred_;
+}
+inline void Component::set_pred(bool value) {
+  
+  pred_ = value;
+  // @@protoc_insertion_point(field_set:Component.pred)
+}
+
+// string filename = 24;
+inline void Component::clear_filename() {
+  filename_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& Component::filename() const {
+  // @@protoc_insertion_point(field_get:Component.filename)
+  return filename_.GetNoArena();
+}
+inline void Component::set_filename(const ::std::string& value) {
+  
+  filename_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:Component.filename)
+}
+#if LANG_CXX11
+inline void Component::set_filename(::std::string&& value) {
+  
+  filename_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:Component.filename)
+}
+#endif
+inline void Component::set_filename(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  filename_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:Component.filename)
+}
+inline void Component::set_filename(const char* value, size_t size) {
+  
+  filename_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:Component.filename)
+}
+inline ::std::string* Component::mutable_filename() {
+  
+  // @@protoc_insertion_point(field_mutable:Component.filename)
+  return filename_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* Component::release_filename() {
+  // @@protoc_insertion_point(field_release:Component.filename)
+  
+  return filename_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void Component::set_allocated_filename(::std::string* filename) {
+  if (filename != NULL) {
+    
+  } else {
+    
+  }
+  filename_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), filename);
+  // @@protoc_insertion_point(field_set_allocated:Component.filename)
 }
 
 // -------------------------------------------------------------------

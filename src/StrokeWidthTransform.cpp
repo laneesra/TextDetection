@@ -4,69 +4,93 @@
 
 #include "StrokeWidthTransform.h"
 
-#include <cassert>
-#include <cmath>
-#include <iostream>
-#include <cmath>
-#include <ctime>
-#include <utility>
-#include <algorithm>
-#include <vector>
-
-#define PI 3.14159265
-
-using namespace cv;
 using namespace std;
 
-StrokeWidthTransform::StrokeWidthTransform(string filename, string format) : filename(filename) {
-    image = imread("../images/original/" + filename + format);
-    int height = image.size[0];
+StrokeWidthTransform::StrokeWidthTransform(const string& filename) : filename(filename) {
+    image = cv::imread(filename);
     int width = image.size[1];
-    gray = Mat(height, width, CV_8UC1);
-    blurred = Mat(height, width, CV_32FC1);
-    gradientY = Mat(height, width, CV_32FC1);
-    gradientX = Mat(height, width, CV_32FC1);
-    SWTMatrix = Mat(height, width, CV_32FC1, Scalar(-1.));
-    SWTMatrix_norm = Mat(height, width, CV_32FC1);
-    result = Mat(height, width, CV_8UC1);
+    int height = image.size[0];
+    gray = cv::Mat(height, width, CV_8UC1);
+    blurred = cv::Mat(height, width, CV_32FC1);
+    gradientY = cv::Mat(height, width, CV_32FC1);
+    gradientX = cv::Mat(height, width, CV_32FC1);
+    SWTMatrix = cv::Mat(height, width, CV_32FC1, cv::Scalar(-1.));
+    SWTMatrix_norm = cv::Mat(height, width, CV_32FC1);
+    result = cv::Mat(height, width, CV_8UC1);
 }
 
-void StrokeWidthTransform::execute() {
+
+void StrokeWidthTransform::execute(bool darkOnLight) {
     edgeDetection();
     gradient();
-    // TODO two-side pass for true and false
-    buildSWT(true); // true if white text on dark background, else false
+    buildSWT(darkOnLight); // true if white text on dark background, else false
     medianFilter();
     normalizeImage(SWTMatrix, SWTMatrix_norm);
     convertScaleAbs(SWTMatrix_norm, result, 255, 0);
-    //showAndSaveSWT();
+ //   showAndSaveSWT(darkOnLight);
 }
 
+
 void StrokeWidthTransform::edgeDetection() {
-    cvtColor(image, gray, COLOR_BGR2GRAY);
+    cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+    blur(gray, gray, cv::Size(4, 4));
+    /* Mat thresh;
+    edge_threshold_high = threshold(gray, thresh, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+    edge_threshold_low = edge_threshold_high * 0.5;
+    cout << edge_threshold_low << " " << edge_threshold_high << endl; */
+
+    //adaptiveThreshold(gray, edge, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 11, 2);
     Canny(gray, edge, edge_threshold_low, edge_threshold_high, 3);
-//    imshow("Edge map : Canny default", edge);
+    filename = filename.substr(filename.size() - 12);
+
+    /* imwrite("../images/" + filename + "_Canny.jpg", edge);
+    imwrite("../images/" + filename + "_Canny.jpg", edge);
+    imshow("edges", edge);
+    waitKey(0); */
 }
 
 
 void StrokeWidthTransform::gradient() {
     convertScaleAbs(gray, blurred, 1./255., 0);
-    blur(gray, blurred, Size(5, 5));
-    Scharr(gray, gradientX, CV_32F, 1, 0);
-    Scharr(gray, gradientY, CV_32F, 0, 1);
-    blur(gradientX, gradientX, Size(3, 3));
-    blur(gradientY, gradientY, Size(3, 3));
-    imwrite("../images/" + filename + "_gradientX.jpg", gradientX);
-    imwrite("../images/" + filename + "_gradientY.jpg", gradientY);
-//    imshow("Gradient X : Scharr", gradientX);
-//    imshow("Gradient Y : Scharr", gradientY);
+    /*cuda::GpuMat grayGpu, blurredGpu, gradientXGpu, gradientYGpu;
+    grayGpu.upload(gray);
+    cuda::cvtColor(grayGpu, grayGpu, COLOR_GRAY2BGRA);
+
+    Ptr<cuda::Filter> blurFilter = cuda::createGaussianFilter(grayGpu.type(), grayGpu.type(), Size(5, 5), 1);
+    blurFilter->apply(grayGpu, blurredGpu);
+    blurred = Mat(blurredGpu);
+    Ptr<cuda::Filter> ScharrFilterX = cuda::createScharrFilter(grayGpu.type(), grayGpu.type(), 1, 0);
+    Ptr<cuda::Filter> ScharrFilterY = cuda::createScharrFilter(grayGpu.type(), grayGpu.type(), 0, 1);*/
+
+    blur(gray, blurred, cv::Size(5, 5));
+    Scharr(blurred, gradientX, CV_32F, 1, 0);
+    Scharr(blurred, gradientY, CV_32F, 0, 1);
+    /*gradientXGpu.upload(gradientX);
+    gradientYGpu.upload(gradientY);
+    ScharrFilterX->apply(blurredGpu, gradientXGpu);
+    ScharrFilterY->apply(blurredGpu, gradientYGpu);
+    blurFilter->apply(gradientXGpu, gradientXGpu);
+    blurFilter->apply(gradientYGpu, gradientYGpu);
+    gradientX = Mat(gradientXGpu);
+    gradientY = Mat(gradientYGpu);*/
+
+    blur(gradientX, gradientX, cv::Size(5, 5));
+    blur(gradientY, gradientY, cv::Size(5, 5));
+ //   imwrite("../images/" + filename + "_gradientX.jpg", gradientX);
+ //   imwrite("../images/" + filename + "_gradientY.jpg", gradientY);
+ //   imshow("Gradient X : Scharr", gradientX);
+ //   imshow("Gradient Y : Scharr", gradientY);
 }
 
 
-void StrokeWidthTransform::showAndSaveSWT() {
-    imwrite("../images/" + filename + "_SWT.jpg", result);
+void StrokeWidthTransform::showAndSaveSWT(bool darkOnLight) {
+    if (darkOnLight) {
+        imwrite("../images/" + filename + "_SWT" + "_dark.jpg", result);
+    } else {
+        imwrite("../images/" + filename + "_SWT" + "_light.jpg", result);
+    }
     imshow("SWT", result);
-    waitKey(0);
+    cv::waitKey(0);
 }
 
 
@@ -77,7 +101,6 @@ void StrokeWidthTransform::medianFilter() {
             int y = point.y;
             point.SWT = SWTMatrix.at<float>(y, x);
         }
-        vector<SWTPoint> points = ray.points;
         sort(ray.points.begin(), ray.points.end(), [](const SWTPoint &lhs, const SWTPoint &rhs) -> bool {
                 return lhs.SWT < rhs.SWT;
         });
@@ -144,7 +167,7 @@ void StrokeWidthTransform::buildSWT(bool dark_on_light) {
                                 G_xt = G_xt / mag;
                                 G_yt = G_yt / mag;
                             }
-                            if (acos(G_x * -G_xt + G_y * -G_yt) < PI / 2.) {
+                            if (acos(G_x * -G_xt + G_y * -G_yt) <  M_PI / 2.) {
                                 float length = sqrt(((float)r.q.x - (float)r.p.x)*((float)r.q.x - (float)r.p.x) + ((float)r.q.y - (float)r.p.y)*((float)r.q.y - (float)r.p.y));
                                 for (auto &point : points) {
                                     int x = point.x;
@@ -169,7 +192,7 @@ void StrokeWidthTransform::buildSWT(bool dark_on_light) {
 }
 
 
-void StrokeWidthTransform::normalizeImage (Mat input, Mat output) {
+void StrokeWidthTransform::normalizeImage(const cv::Mat& input, cv::Mat& output) {
     float maxVal = 0;
     float minVal = 255;
     for (int row = 0; row < input.rows; row++) {

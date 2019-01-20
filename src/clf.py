@@ -2,26 +2,11 @@ from catboost import CatBoostClassifier, Pool
 import Components_pb2 as pbcomp
 
 
-def fit_chain():
-    train_file = '.././chains.df'
-    cd_file = '.././chains.cd'
-    train_pool = Pool(train_file, column_description=cd_file)
-    model = CatBoostClassifier(depth=3, iterations=100, eval_metric='F1', task_type='CPU')
-    model.fit(train_pool)
-    model.save_model('chain.model')
-
-
-def predict_comp(is_dark_on_light):
-    if is_dark_on_light:
-        test_comp_file = '../comp/components_dark.df'
-    else:
-        test_comp_file = '../comp/components_light.df'
-
+def predict_catboost():
+    test_comp_file = '../comp/component_IMG.df'
     cd_comp_file = '../components.cd'
-    try:
-        test_comp_pool = Pool(test_comp_file, column_description=cd_comp_file)
-    except BaseException:
-        return
+
+    test_comp_pool = Pool(test_comp_file, column_description=cd_comp_file)
 
     comp_model = CatBoostClassifier().load_model('comp.model')
     preds = comp_model.predict(test_comp_pool)
@@ -31,45 +16,19 @@ def predict_comp(is_dark_on_light):
         if preds[i]:
             print i, proba
     components = pbcomp.Components()
-    write_preds_to_proto(components, preds, probas, is_dark_on_light)
+    write_preds_to_proto(components, preds)
 
 
-def predict_chain(is_dark_on_light):
-    if is_dark_on_light:
-        test_comp_file = '../chain/chain_dark.df'
-    else:
-        test_comp_file = '../chain/chain_light.df'
-
-    cd_chain_file = '../chains.cd'
-    try:
-        test_chain_pool = Pool(test_comp_file, column_description=cd_chain_file)
-    except BaseException:
-        return
-
-    comp_model = CatBoostClassifier().load_model('chain.model')
-    preds = comp_model.predict(test_chain_pool)
-
-    return preds
-
-
-def write_preds_to_proto(components, preds, probas, is_dark_on_light):
-    if is_dark_on_light:
-        f = open("../protobins/components_dark.bin", "rb")
-    else:
-        f = open("../protobins/components_light.bin", "rb")
+def write_preds_to_proto(components, preds):
+    f = open("../protobins/components.bin", "rb")
     components.ParseFromString(f.read())
     f.close()
 
     for i, comp in enumerate(components.components):
         comp.pred = preds[i]
-        comp.proba = probas[i][1]
         if comp.pred:
-            print(i, probas[i][1])
+            print(i)
 
-    if is_dark_on_light:
-        f = open("../protobins/components_dark.bin", "wb")
-    else:
-        f = open("../protobins/components_light.bin", "wb")
+    f = open("../protobins/components.bin", "wb")
     f.write(components.SerializeToString())
     f.close()
-
