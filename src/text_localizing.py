@@ -33,16 +33,6 @@ def text_localizing(components, is_dark_on_light):
     return extract_features(lines, img)
 
 
-def train_text_text_localizing(components, is_dark_on_light):
-    filename = components.components[0].filename
-    img = cv.imread(filename, 1)
-    pairs = chains.find_pairs(components)
-    lines = chains.merge_chains(pairs)
-#    draw_bounding_box(components, lines, is_dark_on_light)
-
-    return extract_features(filename[66:-4], lines, img, is_dark_on_light)
-
-
 def read_component(is_dark_on_light):
     components = pbcomp.Components()
 
@@ -50,20 +40,6 @@ def read_component(is_dark_on_light):
         f = open("../protobins/components_dark.bin", "rb")
     else:
         f = open("../protobins/components_light.bin", "rb")
-
-    components.ParseFromString(f.read())
-    f.close()
-
-    return components
-
-
-def read_component_by_id(id, is_dark_on_light):
-    components = pbcomp.Components()
-
-    if is_dark_on_light:
-        f = open("../protobins/components_dark_" + id + ".bin", "rb")
-    else:
-        f = open("../protobins/components_is_dark_on_lightlight_" + id + ".bin", "rb")
 
     components.ParseFromString(f.read())
     f.close()

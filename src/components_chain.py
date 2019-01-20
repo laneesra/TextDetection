@@ -8,10 +8,6 @@ class Letter(object):
         self.dist = -1
 
 
-'''features: candidates count, average probability, average direction, size variation, distance variation, 
-    average axial ratio, average density, average width variation, average color self-similarity'''
-
-
 class Chain(object):
     def __init__(self):
         self.letters = []
