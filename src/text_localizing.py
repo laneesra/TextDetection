@@ -11,13 +11,26 @@ import numpy as np
 import components_chain as chains
 
 
+def final_text(filename, preds, lines, is_dark_on_light):
+    final_lines = []
+    if preds is not None:
+        print preds
+        for i, pred in enumerate(preds):
+            if pred > 0:
+                final_lines.append(lines[i])
+
+        draw_bounding_box(filename, final_lines, is_dark_on_light)
+
+
 def text_localizing(components, is_dark_on_light):
     filename = components.components[0].filename
     img = cv.imread(filename, 1)
     pairs = chains.find_pairs(components)
     lines = chains.merge_chains(pairs)
     extract_features(lines, img)
-    draw_bounding_box(components, lines, is_dark_on_light)
+    draw_bounding_box(filename, lines, is_dark_on_light)
+
+    return extract_features(lines, img)
 
 
 def train_text_text_localizing(components, is_dark_on_light):
@@ -50,7 +63,7 @@ def read_component_by_id(id, is_dark_on_light):
     if is_dark_on_light:
         f = open("../protobins/components_dark_" + id + ".bin", "rb")
     else:
-        f = open("../protobins/components_light_" + id + ".bin", "rb")
+        f = open("../protobins/components_is_dark_on_lightlight_" + id + ".bin", "rb")
 
     components.ParseFromString(f.read())
     f.close()
@@ -58,7 +71,7 @@ def read_component_by_id(id, is_dark_on_light):
     return components
 
 
-def extract_features(id, lines, img, is_dark_on_light):
+def extract_features(lines, img):
     '''chain features: candidates count, average probability, average direction, size variation, distance variation, 
     average axial ratio, average density, average width variation, average color self-similarity'''
     cc = []
@@ -128,11 +141,7 @@ def extract_features(id, lines, img, is_dark_on_light):
             M = cv.getRotationMatrix2D(center, theta, 1)
             dst = cv.warpAffine(img, M, img.shape[:2])
             out = cv.getRectSubPix(dst, size, center)
-            if is_dark_on_light:
-                filename = '../chain_image/text_dark_' + id + '_'
-            else:
-                filename = '../chain_image/text_light_' + id + '_'
-            cv.imwrite(filename + str(i) + '.jpg', out)
+
             rows, cols, bands = out.shape
             X = out.reshape(rows * cols, bands)
 
@@ -153,11 +162,10 @@ def extract_features(id, lines, img, is_dark_on_light):
             awv.append(average_width_variation)
             c.append(colors)
 
-    return cc, ap, sv, dv, aar, ad, awv, c
+    return cc, ap, sv, dv, aar, ad, awv, c, lines
 
 
-def draw_bounding_box(components, lines, is_dark_on_light):
-    filename = components.components[0].filename
+def draw_bounding_box(filename, lines, is_dark_on_light):
     img = cv.imread(filename, 1)
 
     for i, line in enumerate(lines):
@@ -181,9 +189,9 @@ def draw_bounding_box(components, lines, is_dark_on_light):
                 cv.drawContours(img, [box], 0, (0, 191, 255), 2)
 
     if is_dark_on_light:
-        filename = './results/detected_text_dark.jpg'
+        filename = '../results/detected_text_dark.jpg'
     else:
-        filename = './results/detected_text_light.jpg'
+        filename = '../results/detected_text_light.jpg'
     cv.imwrite(filename, img)
     cv.namedWindow('result', cv.WINDOW_NORMAL)
     cv.resizeWindow('result', 1000, 1000)

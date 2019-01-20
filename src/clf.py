@@ -2,7 +2,7 @@ from catboost import CatBoostClassifier, Pool
 import Components_pb2 as pbcomp
 
 
-def fit_catboost():
+def fit_chain():
     train_file = '.././chains.df'
     cd_file = '.././chains.cd'
     train_pool = Pool(train_file, column_description=cd_file)
@@ -11,15 +11,17 @@ def fit_catboost():
     model.save_model('chain.model')
 
 
-def predict_catboost(is_dark_on_light):
+def predict_comp(is_dark_on_light):
     if is_dark_on_light:
         test_comp_file = '../comp/components_dark.df'
     else:
         test_comp_file = '../comp/components_light.df'
 
     cd_comp_file = '../components.cd'
-
-    test_comp_pool = Pool(test_comp_file, column_description=cd_comp_file)
+    try:
+        test_comp_pool = Pool(test_comp_file, column_description=cd_comp_file)
+    except BaseException:
+        return
 
     comp_model = CatBoostClassifier().load_model('comp.model')
     preds = comp_model.predict(test_comp_pool)
@@ -30,6 +32,24 @@ def predict_catboost(is_dark_on_light):
             print i, proba
     components = pbcomp.Components()
     write_preds_to_proto(components, preds, probas, is_dark_on_light)
+
+
+def predict_chain(is_dark_on_light):
+    if is_dark_on_light:
+        test_comp_file = '../chain/chain_dark.df'
+    else:
+        test_comp_file = '../chain/chain_light.df'
+
+    cd_chain_file = '../chains.cd'
+    try:
+        test_chain_pool = Pool(test_comp_file, column_description=cd_chain_file)
+    except BaseException:
+        return
+
+    comp_model = CatBoostClassifier().load_model('chain.model')
+    preds = comp_model.predict(test_chain_pool)
+
+    return preds
 
 
 def write_preds_to_proto(components, preds, probas, is_dark_on_light):
@@ -54,7 +74,7 @@ def write_preds_to_proto(components, preds, probas, is_dark_on_light):
     f.close()
 
 
-def predict_catboost_by_id(id, is_dark_on_light):
+def predict_comp_by_id(id, is_dark_on_light):
     if is_dark_on_light:
         test_comp_file = '../comp/components_dark_' + id + '.df'
     else:

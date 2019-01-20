@@ -8,9 +8,6 @@ class Letter(object):
         self.dist = -1
 
 
-pi = 180
-
-
 '''features: candidates count, average probability, average direction, size variation, distance variation, 
     average axial ratio, average density, average width variation, average color self-similarity'''
 
@@ -40,7 +37,7 @@ class Chain(object):
         for l in chainA.letters:
             direction += l.comp.orientation
 
-        direction /= chainA.candidate_count
+        direction /= len(chainA.letters)
         chainA.direction = direction
         chainA.set_bounding_box()
 
@@ -49,7 +46,7 @@ class Chain(object):
 
     def orientation_similarity(chainA, chainB):
         incl_angle = abs(chainA.direction - chainB.direction)
-        return incl_angle <= pi / 2
+        return incl_angle <= 90
 
     def location_similarity(chainA, chainB):
         chainA_ind = [let.ind for let in chainA.letters]
@@ -60,7 +57,7 @@ class Chain(object):
             return False
 
     def is_similar(chainA, chainB):
-            return chainA.orientation_similarity(chainB) and chainA.location_similarity(chainB)
+        return chainA.orientation_similarity(chainB) and chainA.location_similarity(chainB)
 
     def set_bounding_box(self):
         compsX = sorted([l.comp for l in self.letters], key=get_min_x)
@@ -82,9 +79,10 @@ class Pair(object):
         self.letterB.comp.characteristic_scale = self.letterB.comp.minor_axis + self.letterB.comp.major_axis
         if self.letterB.comp.characteristic_scale and self.letterB.comp.mean:
             return 0.5 < self.letterA.comp.mean / self.letterB.comp.mean < 2.0 and \
-            0.4 < self.letterA.comp.characteristic_scale / self.letterB.comp.characteristic_scale < 2.5 and \
-            dist(self.letterA.comp.center_x, self.letterA.comp.center_y, self.letterB.comp.center_x, self.letterB.comp.center_y) < 2 * max(
-                           self.letterA.comp.minor_axis, self.letterB.comp.minor_axis)
+                   0.4 < self.letterA.comp.characteristic_scale / self.letterB.comp.characteristic_scale < 2.5 and \
+                   dist(self.letterA.comp.center_x, self.letterA.comp.center_y, self.letterB.comp.center_x,
+                        self.letterB.comp.center_y) < 2 * max(
+                self.letterA.comp.minor_axis, self.letterB.comp.minor_axis)
         else:
             return False
 
@@ -106,7 +104,7 @@ def get_min_y(comp):
 
 
 def dist(x1, y1, x2, y2):
-    return sqrt((x1 - x2)**2 + (y1 - y2)**2)
+    return sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
 
 def find_pairs(comp):
@@ -152,5 +150,3 @@ def merge_chains(chains):
         length = len(lines)
 
     return lines
-
-
