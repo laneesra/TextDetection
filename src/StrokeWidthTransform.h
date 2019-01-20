@@ -8,9 +8,17 @@
 
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include <cassert>
+#include <cmath>
+#include <iostream>
+#include <cmath>
+#include <ctime>
+#include <utility>
+#include <algorithm>
+#include <vector>
 
 using namespace std;
-using namespace cv;
+//using namespace cv;
 
 struct SWTPoint {
     int y;
@@ -41,17 +49,17 @@ public:
     string filename;
     int edge_threshold_low = 80;
     int edge_threshold_high = edge_threshold_low * 2;
-    Mat image, gray, blurred, edge, gradientX, gradientY, SWTMatrix, SWTMatrix_norm, result;
+    cv::Mat image, gray, blurred, edge, gradientX, gradientY, SWTMatrix, SWTMatrix_norm, result;
     vector<Ray> rays;
 
-    StrokeWidthTransform(string filename);
+    StrokeWidthTransform(const string& filename);
     void execute(bool dark_on_light);
     void edgeDetection();
     void gradient();
     void buildSWT(bool dark_on_light);
     void showAndSaveSWT(bool dark_on_light);
     void medianFilter();
-    void normalizeImage(Mat& input, Mat& output);
+    void normalizeImage(const cv::Mat& input, cv::Mat& output);
 };
 
 

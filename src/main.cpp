@@ -7,34 +7,43 @@
 #include <future>
 #include "ConnectedComponents.h"
 
-using namespace cv;
 using namespace std;
 
-void runPass(bool isDarkOnLight, string filename);
+void runPass(bool isDarkOnLight, const string& filename);
 
 
 int main(int argc, const char** argv) {
     string filename = argv[1];
-    string isDakrOnLight = argv[2];
+    string isDarkOnLight = argv[2];
     double duration;
 
     clock_t start;
     start = clock();
-    cout << isDakrOnLight << endl;
-    cout << endl << filename  << endl;
-    if (isDakrOnLight == "true") {
+    if (isDarkOnLight == "true") {
         runPass(true, filename);
     } else {
         runPass(false, filename);
     }
     duration = (clock() - start) / (double) CLOCKS_PER_SEC;
-    cout << duration << endl;
+    cout << "full duration is " << duration << " seconds" << endl;
 }
 
 
-void runPass(bool isDarkOnLight, string filename) {
+void runPass(bool isDarkOnLight, const string& filename) {
+    double duration;
+    clock_t start;
+    start = clock();
+
     StrokeWidthTransform swt(filename);
     swt.execute(isDarkOnLight);
+
+    duration = (clock() - start) / (double) CLOCKS_PER_SEC;
+    cout << "swt duration is " << duration << " seconds" << endl;
+    start = clock();
+
     ConnectedComponents cc = ConnectedComponents(filename, swt.SWTMatrix, swt.result, swt.image, isDarkOnLight);
     cc.execute(swt.edge);
+    duration = (clock() - start) / (double) CLOCKS_PER_SEC;
+    cout << "cc duration is " << duration << " seconds" << endl;
+
 }

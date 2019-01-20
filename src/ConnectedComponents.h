@@ -9,6 +9,15 @@
 #include "StrokeWidthTransform.h"
 #include "Components.pb.h"
 #include <opencv2/opencv.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/connected_components.hpp>
+#include <boost/unordered_map.hpp>
+#include <boost/graph/floyd_warshall_shortest.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/io.hpp>
+#include <iostream>
+#include <future>
 
 
 class ConnectedComponents {
@@ -16,21 +25,21 @@ public:
     string filename;
     Components components;
     Components validComponents;
-    Mat SWTMatrix;
-    Mat connectedComponents;
-    Mat image;
+    cv::Mat SWTMatrix;
+    cv::Mat connectedComponents;
+    cv::Mat image;
     bool isDarkOnLight;
 
-    ConnectedComponents(string filename, Mat& SWTMatrix, Mat& SWTMatrixNormU, Mat& image, bool isDarkOnLight);
-    void execute(Mat edge);
+    ConnectedComponents(const string& filename, const cv::Mat& SWTMatrix, const cv::Mat& SWTMatrixNormU, const cv::Mat& image, bool isDarkOnLight);
+    void execute(cv::Mat edge);
     void findComponentsBoost();
     void showAndSaveComponents();
     void firstStageFilter();
-    void computeFeatures(Mat& edge);
+    void computeFeatures(cv::Mat& edge);
     void setValidComponent(Component* comp, int maxX, int minX, int maxY, int minY);
     void saveData();
     void markComponents();
-    void improveComponentSWT(Component* comp, Mat& morphImg);
+    void improveComponentSWT(Component* comp, cv::Mat& morphImg);
 };
 
 
