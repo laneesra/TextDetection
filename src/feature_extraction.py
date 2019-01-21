@@ -45,4 +45,4 @@ def run(is_dark_on_light):
 comp_fieldnames = ['image', 'id', 'width', 'height', 'mean', 'standard deviation', 'width variation', 'aspect ratio',
                   'occupation ratio', 'minor axis', 'major axis', 'axial ratio', 'orientation', 'density',
                   'isDarkOnLight', 'text']
-   components = pbcomp.Components()
+components = pbcomp.Components()
