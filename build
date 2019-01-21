@@ -1,0 +1,10 @@
+#!/bin/bash
+
+mkdir protobins;
+mkdir results;
+cd src;
+cmake CMakeLists.txt;
+make;
+cd ..;
+echo "Done!"
+

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cd src;
+echo "Please, enter the absolute path to image: ";
+read path;
+./TextDetection "$path" true & ./TextDetection "$path" false;
+python execute.py;
+cd ..;
+echo "Done!"
