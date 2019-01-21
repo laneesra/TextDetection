@@ -17,7 +17,7 @@ void ConnectedComponents::execute(cv::Mat edge) {
     firstStageFilter();
 
     //markComponents();
-    showAndSaveComponents();
+    //showAndSaveComponents();
     computeFeatures(edge);
     saveData();
 }
@@ -349,9 +349,9 @@ void ConnectedComponents::computeFeatures(cv::Mat& edge) {
 void ConnectedComponents::saveData() {
     string result_file;
     if (isDarkOnLight) {
-        result_file = "./protobins/components_dark.bin";
+        result_file = "../protobins/components_dark.bin";
     } else {
-        result_file = "./protobins/components_light.bin";
+        result_file = "../protobins/components_light.bin";
     }
     fstream output(result_file, ios::out | ios::binary);
     if (!validComponents.SerializeToOstream(&output)) {
