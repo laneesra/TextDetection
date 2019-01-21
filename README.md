@@ -7,7 +7,7 @@ To build project run ./build script.
 ## Run
 To test text detection run ./detect_text and enter the path to image you want to test.
 
-### Requirements
+## Requirements
 C++: boost
 python(2.7): plot, CatBoost
 OpenCV 3.3.0
