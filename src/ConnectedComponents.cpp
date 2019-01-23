@@ -10,7 +10,7 @@ ConnectedComponents::ConnectedComponents(const string& filename, const cv::Mat& 
     cvtColor(SWTMatrixNormU, connectedComponents, cv::COLOR_GRAY2BGR);
 }
 
-
+///executes whole process of connecting components
 void ConnectedComponents::execute(cv::Mat edge) {
   //  auto func = async(launch::async, &ConnectedComponents::findComponentsBoost, this, true);
     findComponentsBoost();
@@ -22,7 +22,7 @@ void ConnectedComponents::execute(cv::Mat edge) {
     saveData();
 }
 
-
+///analizes SWT-matrix and unit pixels to connected components
 void ConnectedComponents::findComponentsBoost() {
     boost::unordered_map<int, int> map;
     boost::unordered_map<int, SWTPoint> reverse_map;
@@ -90,7 +90,7 @@ void ConnectedComponents::findComponentsBoost() {
     }
 }
 
-
+///deleting of false lines by using morphology and first stage of filtration
 void ConnectedComponents::firstStageFilter() {
     cv::Mat element = getStructuringElement(cv::MORPH_RECT, cv::Size(2, 2), cv::Point(1, 1));
     cv::Mat morphImg;
@@ -128,7 +128,7 @@ void ConnectedComponents::firstStageFilter() {
     }
 }
 
-
+///method for creating the dataset, marks components with 0 and 1
 void ConnectedComponents::markComponents() {
     for (int i = 0; i < validComponents.components().size(); i++) {
         auto comp = validComponents.mutable_components(i);
@@ -171,7 +171,7 @@ void ConnectedComponents::markComponents() {
 
 }
 
-
+///method for showing the result and saving it
 void ConnectedComponents::showAndSaveComponents() {
     int count = 0;
     filename = filename.substr(filename.size() - 12, 8);
@@ -197,7 +197,7 @@ void ConnectedComponents::showAndSaveComponents() {
     }
 }
 
-
+///finds valid components and write them to right object
 void ConnectedComponents::setValidComponent(Component* comp, int maxX, int minX, int maxY, int minY) {
     float height = (float)maxY - minY + 1;
     float width = (float)maxX - minX + 1;
@@ -244,6 +244,7 @@ void ConnectedComponents::setValidComponent(Component* comp, int maxX, int minX,
     }
 }
 
+///realizes analysis by using morphology
 void ConnectedComponents::improveComponentSWT(Component* comp, cv::Mat& morphImg) {
     vector<SWTPoint_buf> validPoints;
     for (const auto& p : comp->points()) {
@@ -266,7 +267,7 @@ void ConnectedComponents::improveComponentSWT(Component* comp, cv::Mat& morphImg
 
 }
 
-
+///compute features for classificator 
 void ConnectedComponents::computeFeatures(cv::Mat& edge) {
     /// find text orientation
     cv::Mat angles = cv::Mat(image.size[0], image.size[1], CV_32F, cv::Scalar(0));
@@ -346,6 +347,7 @@ void ConnectedComponents::computeFeatures(cv::Mat& edge) {
     }
 }
 
+///method for saving data to protobuf
 void ConnectedComponents::saveData() {
     string result_file;
     if (isDarkOnLight) {
