@@ -28,7 +28,7 @@ int main(int argc, const char** argv) {
     cout << "full duration is " << duration << " seconds" << endl;
 }
 
-
+///method realizes one pass for dark or light text
 void runPass(bool isDarkOnLight, const string& filename) {
     double duration;
     clock_t start;
