@@ -1,7 +1,7 @@
 from catboost import CatBoostClassifier, Pool
 import Components_pb2 as pbcomp
 
-
+'''fitting model and saving it'''
 def fit_chain():
     train_file = '.././chains.df'
     cd_file = '.././chains.cd'
@@ -10,7 +10,7 @@ def fit_chain():
     model.fit(train_pool)
     model.save_model('chain.model')
 
-
+'''predicting class of components'''
 def predict_comp(is_dark_on_light):
     if is_dark_on_light:
         test_comp_file = '../comp/components_dark.df'
@@ -33,7 +33,7 @@ def predict_comp(is_dark_on_light):
     components = pbcomp.Components()
     write_preds_to_proto(components, preds, probas, is_dark_on_light)
 
-
+'''predicting class of chains'''
 def predict_chain(is_dark_on_light):
     if is_dark_on_light:
         test_comp_file = '../chain/chain_dark.df'
@@ -51,7 +51,7 @@ def predict_chain(is_dark_on_light):
 
     return preds
 
-
+'''writing predictions to proto bin file'''
 def write_preds_to_proto(components, preds, probas, is_dark_on_light):
     if is_dark_on_light:
         f = open("../protobins/components_dark.bin", "rb")
