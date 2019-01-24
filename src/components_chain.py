@@ -91,18 +91,22 @@ class Pair(object):
         return chain
 
 
+'''min x of component'''
 def get_min_x(comp):
     return comp.minX
 
 
+'''min y of component'''
 def get_min_y(comp):
     return comp.minY
 
 
+'''return distance between two points'''
 def dist(x1, y1, x2, y2):
     return sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
 
+'''unite components to pairs'''
 def find_pairs(comp):
     components = comp
     n = len(components.components)
@@ -121,6 +125,7 @@ def find_pairs(comp):
     return chains_of_pairs
 
 
+'''merge chains to get text lines'''
 def find_lines(chains):
     lines = []
     for chain in chains:
