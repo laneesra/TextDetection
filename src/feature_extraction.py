@@ -3,7 +3,7 @@ import glob
 import Components_pb2 as pbcomp
 import csv
 
-
+'''writing features od components to df file for using by catboost'''
 def write_comp_to_df(components, is_dark_on_light):
     if is_dark_on_light:
         filename = '../comp/components_dark.df'
@@ -31,7 +31,8 @@ def write_comp_to_df(components, is_dark_on_light):
                      'orientation': round(comp.orientation, 4), 'density': round(float(q)/S**2, 4),
                      'isDarkOnLight': int(comp.isDarkOnLight), 'text': int(comp.isText)})
 
-
+                
+'''run process of writing features to file'''
 def run(is_dark_on_light):
     if is_dark_on_light:
         f = open("../protobins/components_dark.bin", "rb")
