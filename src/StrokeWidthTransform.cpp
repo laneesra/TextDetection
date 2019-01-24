@@ -19,7 +19,7 @@ StrokeWidthTransform::StrokeWidthTransform(const string& filename) : filename(fi
     result = cv::Mat(height, width, CV_8UC1);
 }
 
-
+///executes whole process of building SWT_image
 void StrokeWidthTransform::execute(bool darkOnLight) {
     edgeDetection();
     gradient();
@@ -30,7 +30,7 @@ void StrokeWidthTransform::execute(bool darkOnLight) {
  //   showAndSaveSWT(darkOnLight);
 }
 
-
+///Canny edge detecion
 void StrokeWidthTransform::edgeDetection() {
     cvtColor(image, gray, cv::COLOR_BGR2GRAY);
     blur(gray, gray, cv::Size(4, 4));
@@ -49,7 +49,7 @@ void StrokeWidthTransform::edgeDetection() {
     waitKey(0); */
 }
 
-
+///computes gradient
 void StrokeWidthTransform::gradient() {
     convertScaleAbs(gray, blurred, 1./255., 0);
     /*cuda::GpuMat grayGpu, blurredGpu, gradientXGpu, gradientYGpu;
@@ -82,7 +82,7 @@ void StrokeWidthTransform::gradient() {
  //   imshow("Gradient Y : Scharr", gradientY);
 }
 
-
+///methid for showing result and saving it 
 void StrokeWidthTransform::showAndSaveSWT(bool darkOnLight) {
     if (darkOnLight) {
         imwrite("../images/" + filename + "_SWT" + "_dark.jpg", result);
@@ -93,7 +93,7 @@ void StrokeWidthTransform::showAndSaveSWT(bool darkOnLight) {
     cv::waitKey(0);
 }
 
-
+///second pass for SWT-image to detect possible mistakes on corners
 void StrokeWidthTransform::medianFilter() {
     for (auto &ray : rays) {
         for (auto &point : ray.points) {
@@ -111,7 +111,7 @@ void StrokeWidthTransform::medianFilter() {
     }
 }
 
-
+///main method for building SWT-image
 void StrokeWidthTransform::buildSWT(bool dark_on_light) {
     float prec = .05;
     for (int row = 0; row < edge.rows; row++) {
@@ -191,7 +191,7 @@ void StrokeWidthTransform::buildSWT(bool dark_on_light) {
     }
 }
 
-
+///normalizing image for using by opencv
 void StrokeWidthTransform::normalizeImage(const cv::Mat& input, cv::Mat& output) {
     float maxVal = 0;
     float minVal = 255;
