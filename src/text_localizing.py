@@ -11,6 +11,7 @@ import numpy as np
 import components_chain as chains
 
 
+'''visualization of text lines'''
 def final_text(filename, preds, lines, is_dark_on_light):
     final_lines = []
     if preds is not None:
@@ -22,6 +23,7 @@ def final_text(filename, preds, lines, is_dark_on_light):
         draw_bounding_box(filename, final_lines, is_dark_on_light)
 
 
+'''starting localization of text lines'''
 def text_localizing(components, is_dark_on_light):
     filename = components.components[0].filename
     img = cv.imread(filename, 1)
@@ -33,6 +35,7 @@ def text_localizing(components, is_dark_on_light):
     return extract_features(lines, img)
 
 
+'''methof for reading components from proto bin file'''
 def read_component(is_dark_on_light):
     components = pbcomp.Components()
 
@@ -47,6 +50,7 @@ def read_component(is_dark_on_light):
     return components
 
 
+'''compute chain features for classificator'''
 def extract_features(lines, img):
     '''chain features: candidates count, average probability, average direction, size variation, distance variation, 
     average axial ratio, average density, average width variation, average color self-similarity'''
@@ -141,6 +145,7 @@ def extract_features(lines, img):
     return cc, ap, sv, dv, aar, ad, awv, c, lines
 
 
+'''draw the bounging box of text line'''
 def draw_bounding_box(filename, lines, is_dark_on_light):
     img = cv.imread(filename, 1)
 
