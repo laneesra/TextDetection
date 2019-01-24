@@ -4,7 +4,7 @@ import csv
 chain_fieldnames = ['image', 'isText', 'id', 'candidate count', 'average probability', 'average direction', 'size variation',
                    'distance variation', 'average axial ratio', 'average density', 'average width variation', 'colors']
 
-
+'''writes features of chains to df file for catboost'''
 def write_chain_to_df(candidate_count, average_probability, size_variation, distance_variation, average_axial_ratio,
                       average_density, average_width_variation, colors, is_dark_on_light):
     if is_dark_on_light:
